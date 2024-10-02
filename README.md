@@ -611,7 +611,14 @@ print(f"Le modèle a été converti et sauvegardé dans {output_dir}")
 shutil.copy(tokenizer_file, output_dir)
 print(f"Fichier {tokenizer_file} copié dans {output_dir}")
 ```
-
+```
     Le modèle a été converti et sauvegardé dans ./whisper-base-ch-perigueux-faster-whisper
     Fichier ./whisper-base-ch-perigueux/tokenizer.json copié dans ./whisper-base-ch-perigueux-faster-whisper
+```
+### Progressions et résultats
 
+![Training](images/Progressions.png)
+
+![Résultats](images/Resultat.png)
+
+On note une nette diminution du WER qui montre que l'entainement à fonctionné et que les audios tests sont mieux transcripts apèrs le finetuning.
