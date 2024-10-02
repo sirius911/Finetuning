@@ -1,42 +1,75 @@
-# **Fine-Tune de Whisper Pour des termes médicaux en français**
+# Fine-tuning Whisper pour la Reconnaissance Automatique de la Parole Médicale en Français
 
-Ecrit à partir de [https://huggingface.co/blog/fine-tune-whisper](https://huggingface.co/blog/fine-tune-whisper)
+## Cyrille LORIN
 
-## Introduction
+## Résumé
 
-Whisper est un modèle pré-entraîné pour la reconnaissance automatique de la parole (ASR) publié en septembre 2022 par les auteurs Alec Radford et al. de l'OpenAI. Contrairement à nombre de ses prédécesseurs, tels que Wav2Vec 2.0, qui sont pré-entraînés sur des données audio non étiquetées, Whisper est pré-entraîné sur une grande quantité de données de transcription audio étiquetées, 680 000 heures pour être précis. Il s'agit d'un ordre de grandeur plus important que les données audio non étiquetées utilisées pour entraîner Wav2Vec 2.0 (60 000 heures). De plus, 117 000 heures de ces données de pré-entraînement sont des données ASR multilingues. Il en résulte des checkpoints qui peuvent être appliqués à plus de 96 langues, dont beaucoup sont considérées comme des langues à faibles ressources.
+Cet article explore le processus de fine-tuning du modèle **Whisper** pour la transcription de termes médicaux en français. Nous avons utilisé le modèle Whisper-base et généré nos propres données à l'aide de modèles LLM Mistral pour générer des textes médicaux et Bark pour convertir ces textes en audio. Cet article inclut la préparation des données, l'architecture du modèle, et l'évaluation des performances avec des métriques telles que le **Word Error Rate** (WER).
 
-Cette quantité de données étiquetées permet à Whisper d'être pré-entraîné directement sur la tâche supervisée de reconnaissance de la parole, en apprenant une correspondance parole-texte à partir des données de pré-entraînement audio-transcription étiquetées 11. Par conséquent, Whisper ne nécessite que peu d'ajustements supplémentaires pour produire un modèle ASR performant. Contrairement à Wav2Vec 2.0, qui est pré-entraîné sur la tâche non supervisée de la prédiction masquée. Ici, le modèle est formé pour apprendre une correspondance intermédiaire entre la parole et les états cachés à partir de données audio non étiquetées. Bien que le pré-entraînement non supervisé produise des représentations de haute qualité de la parole, il ne permet pas d'apprendre une correspondance parole-texte. Cette correspondance n'est apprise qu'au cours du réglage fin, ce qui nécessite un réglage plus fin pour obtenir des performances compétitives.
+## Table des Matières
+1. Introduction
+2. Fonctionnement de Whisper
+3. Versions des Modèles Whisper
+4. Préparation de l'Environnement Python
+5. Création des Données et Validité
+6. Procédure de Fine-Tuning
+7. Adaptation pour whisperLive
+8. Résultats
+9. Conclusion
+10. Références
 
-Lorsqu'ils sont mis à l'échelle avec 680 000 heures de données de pré-entraînement étiquetées, les modèles Whisper démontrent une forte capacité à se généraliser à de nombreux ensembles de données et domaines. Les points de contrôle pré-entraînés obtiennent des résultats compétitifs par rapport aux systèmes ASR de pointe, avec un taux d'erreur de mot (WER) proche de 3% sur le sous-ensemble test-propre de LibriSpeech ASR et un nouvel état de l'art sur TED-LIUM avec un WER de 4,7% (cf. tableau 8 de l'article sur Whisper). La connaissance approfondie de l'ASR multilingue acquise par Whisper pendant le pré-entraînement peut être exploitée pour d'autres langues à faibles ressources ; grâce à un réglage fin, les points de contrôle pré-entraînés peuvent être adaptés à des ensembles de données et à des langues spécifiques afin d'améliorer encore ces résultats.
+---
 
-Whisper est un modèle de codage-décodage basé sur un transformateur, également appelé modèle séquence-séquence. Il établit une correspondance entre une séquence de caractéristiques de spectrogrammes audio et une séquence de mots-clés de texte. Tout d'abord, les entrées audio brutes sont converties en un spectrogramme log-Mel par l'action de l'extracteur de caractéristiques. L'encodeur Transformer encode ensuite le spectrogramme pour former une séquence d'états cachés de l'encodeur. Enfin, le décodeur prédit de manière autorégressive les mots-clés du texte, en fonction des mots-clés précédents et des états cachés du codeur.
+## 1. Introduction
 
-La figure 1 résume le modèle Whisper.
+La reconnaissance automatique de la parole (ASR) est un domaine en pleine expansion, avec des applications variées notamment dans le secteur médical. Le modèle Whisper d’OpenAI se distingue par sa capacité à transcrire et à traduire automatiquement des enregistrements dans plusieurs langues, en se basant sur 680 000 heures de données audio.
+
+Le besoin de solutions adaptées aux données médicales en français a motivé l'adaptation de Whisper pour des scénarios spécifiques. Cette étude explore comment fine-tuner Whisper pour traiter des termes médicaux.
+
+## 2. Fonctionnement de Whisper
+
+Whisper est un modèle pré-entraîné pour la reconnaissance automatique de la parole (**ASR**) publié en septembre 2022 par OpenAI, conçu pour la **transcription** et la **traduction** dans plus de **96 langues**, dont plusieurs à faibles ressources. Il se distingue par un pré-entraînement massif sur **680 000 heures de données audio étiquetées**, bien plus que ses prédécesseurs comme **Wav2Vec 2.0**, qui utilise 60 000 heures de données non étiquetées.
+
+Contrairement aux approches non supervisées comme **Wav2Vec 2.0**, Whisper apprend une correspondance directe entre la parole et le texte en étant pré-entraîné directement sur des données étiquetées. Sur 680 000 heures de pré-entraînement, **117 000 heures** concernent l’**ASR multilingue**, ce qui permet une large généralisation des points de contrôle pré-entraînés à d’autres langues et domaines. Ce volume de données étiquetées donne à Whisper un avantage, rendant les ajustements supplémentaires minimaux pour des tâches spécifiques comme le domaine médical.
+
+### Architecture de Whisper
+
+Whisper est basé sur un modèle **seq2seq** (séquence à séquence) avec une architecture **transformer**. Le modèle utilise un **codeur-décodeur** dans lequel :
+- Le **codeur** transforme l’entrée audio (sous forme de spectrogramme log-Mel) en une séquence d’états cachés.
+- Le **décodeur** prédit ensuite les mots de manière autorégressive, en se basant sur ces états cachés et sur les mots précédemment prédits.
+
+#### Fonctionnement
+1. **Entrée audio** : Le signal audio est d'abord converti en spectrogramme log-Mel via un extracteur de caractéristiques.
+2. **Encodage** : Le spectrogramme est encodé par le **transformer** pour générer une séquence d'états cachés.
+3. **Décodage** : Le décodeur prédit la séquence de mots de sortie (texte) en fonction des états cachés et des jetons de texte prédits précédemment.
+
+La **figure 1** ci-dessous illustre cette architecture.
 
 ![modèle Whisper](images/whisper_architecture.jpg "figure 1")
 
+**Figure 1** : Modèle Whisper. L'architecture suit le modèle séquence-séquence transformateur typique. Le spectrogramme est passé dans un codeur, dont les états cachés sont utilisés par le décodeur pour produire de manière autorégressive les mots du texte. Source : OpenAI Whisper Blog.
 
-Figure 1 : Modèle Whisper. L'architecture suit le modèle standard de codeur-décodeur basé sur un transformateur. Un spectrogramme log-Mel est introduit dans le codeur. Les derniers états cachés du codeur sont transmis au décodeur via des mécanismes d'attention croisée. Le décodeur prédit de manière autorégressive les mots-clés du texte, en fonction des états cachés du codeur et des mots-clés prédits précédemment. Source de la figure : OpenAI Whisper Blog.
+### Apprentissage et Ajustement
 
-Dans un modèle séquence à séquence, le codeur transforme les entrées audio en un ensemble de représentations d'états cachés, en extrayant les caractéristiques importantes de la parole. Le décodeur joue le rôle d'un modèle linguistique, traitant les représentations d'états cachés et générant les transcriptions textuelles correspondantes. L'incorporation d'un modèle linguistique en interne dans l'architecture du système est appelée fusion profonde. Cela contraste avec la fusion superficielle, où un modèle linguistique est combiné de manière externe avec un codeur, comme avec CTC + nn-gram (c.f. Internal Language Model Estimation). Avec la fusion profonde, l'ensemble du système peut être entraîné de bout en bout avec les mêmes données d'entraînement et la même fonction de perte, ce qui offre une plus grande flexibilité et des performances généralement supérieures (c.f. ESB Benchmark).
+Whisper utilise une fonction objective standard de l’**entropie croisée**, permettant un apprentissage de bout en bout avec une correspondance parole-texte immédiate. Comparé à des approches comme **CTC + nn-gram**, qui utilisent une **fusion superficielle** (modèle linguistique externe), Whisper intègre une **fusion profonde**, où le modèle linguistique est intégré au système, améliorant ainsi la flexibilité et la performance globale.
 
-Whisper est pré-entraîné et ajusté en utilisant la fonction objective de l'entropie croisée, une fonction objective standard pour l'entraînement des systèmes séquence-à-séquence sur des tâches de classification. Ici, le système est entraîné à classer correctement le jeton de texte cible à partir d'un vocabulaire prédéfini de jetons de texte.
+Lors de son pré-entraînement, Whisper atteint des performances remarquables, notamment un **WER de 3%** sur le sous-ensemble test-propre de **LibriSpeech** et un état de l'art de **4,7%** sur **TED-LIUM**.
 
-Les versions de modèles Whisper(checkpoint) sont disponibles en cinq configurations de tailles de modèles différentes. Les quatre plus petits sont entraînés sur des données en anglais uniquement ou multilingues. Les checkpoints les plus grands sont uniquement multilingues. Les 11 checkpoints pré-entraînés sont disponibles sur le Hugging Face Hub. Les checkpoints sont résumés dans le tableau suivant avec des liens vers les modèles sur le Hub :
+Grâce à son architecture flexible et ses capacités multilingues, Whisper peut être finement ajusté pour des langues spécifiques ou des applications spécialisées, comme la transcription médicale, avec un ajustement minimal nécessaire.
 
-| Size     | Layers | Width | Heads | Parameters | English-only | Multilingual |
-|----------|--------|-------|-------|------------|--------------|--------------|
-| tiny     | 4      | 384   | 6     | 39 M       | ✓            | ✓            |
-| base     | 6      | 512   | 8     | 74 M       | ✓            | ✓            |
-| small    | 12     | 768   | 12    | 244 M      | ✓            | ✓            |
-| medium   | 24     | 1024  | 16    | 769 M      | ✓            | ✓            |
-| large    | 32     | 1280  | 20    | 1550 M     | x            | ✓            |
-| large-v2 | 32     | 1280  | 20    | 1550 M     | x            | ✓            |
-| large-v3 | 32     | 1280  | 20    | 1550 M     | x            | ✓            |
+## 3. Versions des Modèles Whisper
 
+Whisper est disponible en plusieurs tailles de modèle, qui varient en termes de précision et de consommation de ressources. Nous avons utilisé **Whisper-base** pour notre projet, car il offre un bon compromis entre précision et rapidité d'entraînement.
 
-## Préparer l'environnement
+| Version         | Taille (Go) | Paramètres | Largeur des Couches | Couches d'Attention |
+|-----------------|-------------|------------|---------------------|---------------------|
+| Whisper-tiny    | 0.15        | 39 M       | 384                 | 4                   |
+| Whisper-base    | 0.31        | 74 M       | 512                 | 6                   |
+| Whisper-small   | 0.46        | 244 M      | 768                 | 12                  |
+| Whisper-medium  | 1.5         | 769 M      | 1024                | 24                  |
+| Whisper-large   | 2.9         | 1550 M     | 1280                | 32                  |
+
+## 4. Préparation de l'Environnement Python
 
 Voici la liste des modules Python à installer pour préparer l'environnement :
 
@@ -61,15 +94,29 @@ pip install --upgrade datasets[audio] transformers accelerate evaluate jiwer ten
 L'utilisation d'un environnement python est conseillé.(dans les sources il y a aussi les requirements.txt utilisés pour l'expérience)
 Nous vous conseillons vivement de télécharger les checkpoints du modèle directement sur le Hugging Face Hub pendant l'entraînement. Au moins pour le premier entrainement. Par la suite on peut mettre l'adresse physique du modèle déjà téléchargé ou le modèle personnel auparavant entraîné.
 
-### Préparation des datas
+## 5. Création des Données et Validité
 
-Nous avons besoins de fichiers audio et de leur transcriptions correctes.
-Pour celà, nous avons mis dans un dossier data/ un dossier audio/, comprenant X fichiers .wav nommés par un nombre. Dans le repertoire rapports/, nous avons mis la correspondance écrite avec le même numero en format txt (unicode UTF-8)
-Nous verrons plus bas que les audios seront entrainés dans un format particulié. Les avoir dans ce format dès le départ peut faire gagner du temps.
+### Génération de Textes Médicaux avec Mistral
 
-Une fois ces fichiers répartis dans leurs dossiers, nous avons a faire deux fichiers (train.csv et test.csv) qui vont répartir ces données entre les données d'entraînement et les données de test.
-Voici un exmple de code faisant cela:
+En raison du manque de données médicales vocales authentiques en français, nous avons généré nos propres données à l'aide du LLM **Mistral** pour créer des rapports médicaux couvrant des sujets comme les diagnostics et les traitements. Ensuite, ces textes ont été convertis en audio à l'aide du modèle **Text-to-Speech Bark**. Bien que Mistral puisse produire des textes de qualité variable, notre objectif est d'exposer Whisper aux termes médicaux dans des contextes variés. Cela permet au modèle d'apprendre ces termes, en prévoyant que l'utilisation future de voix humaines et de textes réels renforcera encore la performance du modèle.
 
+### Conversion en Audio avec Bark (Text-to-Speech)
+
+Pour créer les fichiers audio correspondants, nous avons utilisé **Bark**, un modèle de text-to-speech (TTS). Bark a transformé les textes générés par LLama2 en fichiers audio, simulant la lecture des rapports médicaux. L'utilisation de ce pipeline permet de créer des données d'entraînement sans nécessiter de voix humaine.
+
+### Structure des Données
+
+Les données sont organisées de la manière suivante pour être utilisées dans le processus de fine-tuning :
+
+```
+└── data/
+    ├── audio/
+    ├── rapports/
+    ├── train.csv
+    └── test.csv
+```
+
+Le fichier CSV contient les chemins vers les fichiers audio et les transcriptions correspondantes, séparés en ensembles d'entraînement et de test. Voici un exemple de code pour générer les fichiers CSV :
 
 ```python
 import os
@@ -112,7 +159,6 @@ train_df.to_csv('train.csv', index=False)
 test_df.to_csv('test.csv', index=False)
 
 print("Train and Test CSV files created successfully.")
-
 ```
 ```
 Train and Test CSV files created successfully.
@@ -130,9 +176,9 @@ audio,sentence
 ../data/audio/151.wav,"Le rapport biologique révèle une thyroïdite de Hashimoto caractérisée par une infiltration lymphocytaire et une fibrose diffuse, confirmant une pathologie auto-immune."
 ```
 
-### Note sur la validité des données
+## 6. Procédure de Fine-Tuning
 
-Dans le principe, nous aurions besoins de véritable rapports médicaux avec les voix des personnels médicaux, les dictants. N'ayant pas encore cela, nous avons eu l'idée de faire faire nos "rapports" médicaux par un LLM (Mistral) et de les faire lire par le TextToSpeech BARK. Biensur la pertinence des textes médicaux issue de Mistral, peut être sujet à interrogation, mais rappelons que notre but est de faire reconnaitre des termes médicaux, et donc de faire "entendre" au modèle Whisper ces mots dans des contextes variés. Notre objectif est alors de montrer que le modèle s'améliore en ayant entendu ces mots. Passer à des textes réels et des voix humaines, ne peut qu'améliorer le modèle, tant dans par les contextes médicaux, plus "réels" que par les voix humaine.
+Une fois l'environnement et les données prêts, le fine-tuning peut être réalisé en utilisant la bibliothèque Hugging Face. 
 
 ### Charger l'ensemble de données (**Dataset**)
 
@@ -188,25 +234,21 @@ Le pipeline ASR peut être décomposé en trois éléments :
 
 Dans 🤗 Transformers, le modèle Whisper est associé à un extracteur de caractéristiques et à un tokenizer, appelés respectivement WhisperFeatureExtractor et WhisperTokenizer.
 
-Nous allons détailler l'extracteur de caractéristiques et le tokenizer un par un !
-
 **Charger l'extracteur de caractéristiques WhisperFeatureExtractor**
 
-La parole est représentée par un tableau à une dimension qui varie avec le temps. La valeur du tableau à un pas de temps donné est l'amplitude du signal à ce moment-là. À partir des seules informations sur l'amplitude, nous pouvons reconstruire le spectre de fréquences de l'audio et récupérer toutes les caractéristiques acoustiques.
+Whisper utilise un **extracteur de caractéristiques** qui effectue deux tâches principales pour préparer les entrées audio : 
 
-La parole étant continue, elle contient un nombre infini de valeurs d'amplitude. Cela pose des problèmes pour les appareils informatiques qui s'attendent à des tableaux finis. Nous discrétisons donc notre signal vocal en échantillonnant des valeurs de notre signal à des pas de temps fixes. L'intervalle avec lequel nous échantillonnons notre audio est connu sous le nom de taux d'échantillonnage et est généralement mesuré en échantillons/sec ou en Hertz (Hz). L'échantillonnage avec un taux d'échantillonnage plus élevé permet d'obtenir une meilleure approximation du signal vocal continu, mais nécessite également le stockage de plus de valeurs par seconde.
+1. **Uniformisation de la longueur audio** : Chaque fichier audio est ajusté à une durée de 30 secondes, soit en remplissant les fichiers plus courts avec des zéros (silence), soit en tronquant les fichiers plus longs. Cette approche élimine le besoin d'un masque d'attention pour identifier les sections remplies, car Whisper déduit lui-même les zones à ignorer.
 
-Il est essentiel de faire correspondre la fréquence d'échantillonnage de nos entrées audio à la fréquence d'échantillonnage attendue par notre modèle, car les signaux audio ayant des fréquences d'échantillonnage différentes ont des distributions très différentes. Les échantillons audio ne doivent être traités qu'avec la bonne fréquence d'échantillonnage. Le non-respect de cette règle peut entraîner des résultats inattendus ! Par exemple, si l'on prend un échantillon audio avec une fréquence d'échantillonnage de 16 kHz et qu'on l'écoute avec une fréquence d'échantillonnage de 8 kHz, l'audio sonnera comme s'il était en demi-vitesse. De la même manière, le passage d'un audio avec un taux d'échantillonnage incorrect peut faire échouer un modèle ASR qui s'attend à un taux d'échantillonnage et en reçoit un autre. L'extracteur de caractéristiques Whisper attend des entrées audio avec un taux d'échantillonnage de 16kHz, nous devons donc faire correspondre nos entrées à cette valeur. Nous ne voulons pas entraîner par inadvertance un système ASR sur de la parole au ralenti !
+2. **Transformation en spectrogramme log-Mel** : L’audio est ensuite converti en **spectrogramme log-Mel**, une représentation visuelle des fréquences audio dans le temps. Le long de l'axe des ordonnées se trouvent les **canaux Mel**, qui représentent des plages de fréquences spécifiques, tandis que l'axe des abscisses représente le temps. Chaque pixel du spectrogramme reflète l’intensité logarithmique de chaque bin de fréquence à un moment donné. Cette représentation est standard dans le traitement de la parole, car elle se rapproche de la perception auditive humaine.
 
-L'extracteur de caractéristiques Whisper effectue deux opérations. Tout d'abord, il compresse/tronque un lot d'échantillons audio de manière à ce que tous les échantillons aient une longueur d'entrée de 30 secondes. Les échantillons de moins de 30 secondes sont ramenés à 30 secondes en ajoutant des zéros à la fin de la séquence (les zéros dans un signal audio correspondent à l'absence de signal ou au silence). Les échantillons de plus de 30 secondes sont tronqués à 30 secondes. Étant donné que tous les éléments de la série sont complétés/tronqués à une longueur maximale dans l'espace d'entrée, nous n'avons pas besoin d'un masque d'attention lorsque nous transmettons les entrées audio au modèle Whisper. Whisper est unique à cet égard - avec la plupart des modèles audio, vous pouvez vous attendre à fournir un masque d'attention qui détaille où les séquences ont été remplies, et donc où elles doivent être ignorées dans le mécanisme d'auto-attention. Whisper est entraîné à fonctionner sans masque d'attention et à déduire directement des signaux vocaux où ignorer les entrées.
+Cette transformation est essentielle pour que Whisper puisse interpréter correctement les entrées audio. Le **spectrogramme log-Mel** est la forme d’entrée attendue par le modèle Whisper, permettant une compréhension plus fine des variations de fréquence, comme illustré dans la **Figure 2** ci-dessous.
 
-La deuxième opération effectuée par l'extracteur de caractéristiques de Whisper consiste à convertir les matrices audio en spectrogrammes log-Mel. Ces spectrogrammes sont une représentation visuelle des fréquences d'un signal, un peu comme une transformée de Fourier. Un exemple de spectrogramme est présenté à la figure 2. Le long de l'axe des ordonnées se trouvent les canaux Mel, qui correspondent à des bins de fréquence particuliers. Le long de l'axe xx se trouve le temps. La couleur de chaque pixel correspond à l'intensité logarithmique de ce groupe de fréquences à un moment donné. Le spectrogramme log-Mel est la forme d'entrée attendue par le modèle Whisper.
+![Spectrogramme](images/spectrogram.jpg)
 
-Les canaux de Mel (bins de fréquence) sont standard dans le traitement de la parole et choisis pour se rapprocher de la gamme auditive humaine. Tout ce que nous avons besoin de savoir pour le réglage fin de Whisper, c'est que le spectrogramme est une représentation visuelle des fréquences du signal de parole. Pour plus de détails sur les canaux Mel, voir le cepstre de fréquence Mel.
+**Figure 2** : Représentation d'un spectrogramme log-Mel. À gauche, un signal audio échantillonné ; à droite, le spectrogramme correspondant. Les canaux Mel représentent les fréquences perçues par l'oreille humaine. Source : [Google SpecAugment Blog.](https://ai.googleblog.com/2019/04/specaugment-new-data-augmentation.html)
 
-![spectogram](images/spectrogram.jpg)
-
-Figure 2 : Conversion d'un réseau audio échantillonné en spectrogramme log-Mel. À gauche : signal audio unidimensionnel échantillonné. À droite : spectrogramme log-Mel correspondant. Source de la figure : [Google SpecAugment Blog.](https://ai.googleblog.com/2019/04/specaugment-new-data-augmentation.html)
+Le spectrogramme visuel permet d’analyser les composantes fréquentielles du signal audio à chaque instant, crucial pour la transcription vocale par Whisper. Grâce à l'extracteur de caractéristiques de **🤗 Transformers**, ces opérations de padding et de transformation en spectrogramme sont réalisées en une seule ligne de code, facilitant ainsi la préparation des données audio pour l'entraînement ou l'inférence du modèle.
 
 Heureusement pour nous, l'extracteur de caractéristiques 🤗 Transformers Whisper effectue à la fois le padding et la conversion du spectrogramme en une seule ligne de code ! Chargeons l'extracteur de caractéristiques à partir du point de contrôle pré-entraîné pour qu'il soit prêt pour nos données audio :
 
@@ -223,6 +265,7 @@ Voyons maintenant comment charger un tokenizer Whisper. Le modèle Whisper produ
 Traditionnellement, lors de l'utilisation de modèles à encodeur seul pour l'ASR, nous décodons en utilisant la classification temporelle connexionniste ([CTC](https://distill.pub/2017/ctc/)). Dans ce cas, nous devons former un tokenizer CTC pour chaque ensemble de données que nous utilisons. L'un des avantages de l'utilisation d'une architecture codeur-décodeur est que nous pouvons directement exploiter le tokenizer du modèle pré-entraîné.
 
 Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour l'hindi, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification. Il suffit de spécifier la langue cible et la tâche. Ces arguments indiquent au tokenizer de préfixer les tokens de la langue et de la tâche au début des séquences d'étiquettes encodées :
+
 
 
 ```python
@@ -254,7 +297,6 @@ print(f"Are equal:             {input_str == decoded_str}")
     Decoded w/ special:    <|startoftranscript|><|fr|><|transcribe|><|notimestamps|>L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide.<|endoftext|>
     Decoded w/out special: L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide.
     Are equal:             True
-
 
 ## Combiner pour créer un WhisperProcessor
 
@@ -339,11 +381,8 @@ Très bien ! Avec cela, nous avons nos données entièrement préparées pour l'
 
 > Note : Actuellement, les jeux de données utilisent à la fois torchaudio et librosa pour le chargement et le rééchantillonnage audio. Si vous souhaitez mettre en œuvre votre propre chargement/échantillonnage de données, vous pouvez utiliser la colonne « path » pour obtenir le chemin du fichier audio et ignorer la colonne « audio ».
 
-
-
 ## Training et Evaluation
 Maintenant que nous avons préparé nos données, nous sommes prêts à nous plonger dans le pipeline de formation. Le 🤗 Trainer va faire le gros du travail à notre place. Tout ce que nous avons à faire, c'est :
-
 
 *   Charger un point de contrôle pré-entraîné : nous devons charger un point de contrôle pré-entraîné et le configurer correctement pour l'entraînement.
 *   Définir un collateur de données : le collateur de données prend nos données prétraitées et prépare des tenseurs PyTorch prêts pour le modèle.
@@ -431,9 +470,10 @@ data_collator = DataCollatorSpeechSeq2SeqWithPadding(
 )
 ```
 
-## Métriques d'évaluation
+## Evaluations
 
-Ensuite, nous définissons la métrique d'évaluation que nous utiliserons sur notre ensemble d'évaluation. Nous utiliserons le taux d'erreur de mots (WER), la métrique « de-facto » pour évaluer les systèmes ASR. Pour plus d'informations, consultez la [documentation](https://huggingface.co/metrics/wer) sur le WER. Nous chargerons la métrique WER à partir de 🤗 Evaluate :
+Après l'entraînement, nous évaluons les performances du modèle avec le **Word Error Rate (WER)**, qui est la métrique standard pour évaluer les systèmes de reconnaissance vocale (ASR). Le WER calcule le pourcentage d'erreurs dans la transcription, en comparant le texte de sortie avec une référence correcte. Nous chargeons la métrique WER via 🤗 **Evaluate**. Pour plus de détails sur le calcul du WER, vous pouvez consulter la [documentation](https://huggingface.co/metrics/wer).
+
 
 
 ```python
@@ -509,7 +549,6 @@ training_args = Seq2SeqTrainingArguments(
 
 Nous pouvons transmettre les arguments d'entraînement au 🤗 Trainer avec notre modèle, notre jeu de données, notre collecteur de données et notre fonction compute_metrics :
 
-
 ```python
 from transformers import Seq2SeqTrainer
 
@@ -523,9 +562,9 @@ trainer = Seq2SeqTrainer(
     tokenizer=processor.feature_extractor,
 )
 ```
-
+```
     max_steps is given, it will override any value given in num_train_epochs
-
+```
 
 Et voilà, nous sommes prêts à commencer l'entraînement !
 
@@ -538,12 +577,12 @@ Pour lancer une formation, il suffit d'exécuter :
 torch.utils.checkpoint.use_reentrant = False
 trainer.train()
 ```
+```
     {'train_runtime': 20297.6998, 'train_samples_per_second': 0.552, 'train_steps_per_second': 0.034, 'train_loss': 0.181169177887163, 'epoch': 58.33}
     TrainOutput(global_step=700, training_loss=0.181169177887163, metrics={'train_runtime': 20297.6998, 'train_samples_per_second': 0.552, 'train_steps_per_second': 0.034, 'total_flos': 6.8128939966464e+17, 'train_loss': 0.181169177887163, 'epoch': 58.333333333333336})
+```
 
-
-
-L'entraînement a duré 5h37, et peut varier en fonction du modèle de base, de l'utilisation ou non d'un GPU ou de celui alloué au Google Colab si vous l'effectué avec. Il est possible que vous rencontriez une erreur CUDA « out-of-memory » lorsque vous commencez l'entraînement. Dans ce cas, vous pouvez réduire la taille du lot  (per_device_train_batch_size) par incréments d'un facteur 2 et utiliser les étapes d'accumulation du gradient (gradient_accumulation_steps) pour compenser.
+L'entraînement a duré 5h37, et peut varier en fonction du modèle de base, de l'utilisation ou non d'un GPU ou de celui alloué au Google Colab si vous l'effectuez avec. Il est possible que vous rencontriez une erreur CUDA « out-of-memory » lorsque vous commencez l'entraînement. Dans ce cas, vous pouvez réduire la taille du lot  (per_device_train_batch_size) par incréments d'un facteur 2 et utiliser les étapes d'accumulation du gradient (gradient_accumulation_steps) pour compenser.
 
 On donne le nom de notre modèle entraîné et on le sauvegarde
 
@@ -553,21 +592,13 @@ finetuned_directory = "./whisper-base-ch-perigueux"
 model.save_pretrained(finetuned_directory)
 processor.save_pretrained(finetuned_directory)
 ```
-
+```
     Some non-default generation parameters are set in the model config. These should go into a GenerationConfig file (https://huggingface.co/docs/transformers/generation_strategies#save-a-custom-decoding-strategy-with-your-model) instead. This warning will be raised to an exception in v4.41.
     Non-default generation parameters: {'max_length': 448, 'suppress_tokens': [1, 2, 7, 8, 9, 10, 14, 25, 26, 27, 28, 29, 31, 58, 59, 60, 61, 62, 63, 90, 91, 92, 93, 359, 503, 522, 542, 873, 893, 902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246, 3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273, 9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157, 14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520, 26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863, 47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362], 'begin_suppress_tokens': [220, 50257]}
+```
+## 7. Adaptation pour whisperLive
 
-
-
-
-
-    []
-
-
-
-### Adaptation pour whisperLive
 Pour notre reconnaissance en temps réel, nous utilisons les modèles faster-whisper, il nous faut donc les mettre dans ce format. Nous avons juste besoins de récupérer le tokenizer.json du modèle que l'on a entrainé et faire la transition par ctranslate2
-
 
 ```python
 import os
@@ -579,12 +610,10 @@ hf_tokenizer = tokenizers.Tokenizer.from_pretrained(model_name)
 # Save the tokenizer to a file in the specified directory
 hf_tokenizer.save(tokenizer_file)
 print(" Ok")
-
 ```
-
+```
     save  ./whisper-base-ch-perigueux/tokenizer.json Ok
-
-
+```
 
 ```python
 import shutil
@@ -613,10 +642,23 @@ print(f"Fichier {tokenizer_file} copié dans {output_dir}")
     Le modèle a été converti et sauvegardé dans ./whisper-base-ch-perigueux-faster-whisper
     Fichier ./whisper-base-ch-perigueux/tokenizer.json copié dans ./whisper-base-ch-perigueux-faster-whisper
 ```
-### Progressions et résultats
+## 8. Résultats
 
-![Training](images/Progressions.png)
+Les performances du modèle se sont améliorées avec chaque itération.
+
+|![Training](images/Progressions.png)
 
 ![Résultats](images/Resultat.png)
 
-On note une nette diminution du WER qui montre que l'entraînement à fonctionné et que les audios tests sont mieux transcripts après le finetuning.
+
+## 9. Conclusion
+
+Le fine-tuning de Whisper pour la transcription des termes médicaux en français démontre qu'il est possible d'améliorer les performances même avec un ensemble de données généré artificiellement. En utilisant des technologies comme Mistral et Bark, nous avons pu générer des données vocales médicales et fine-tuner le modèle de manière efficace. Le WER a été réduit de manière significative avec 180 petits rqpports médicaux, rendant cette approche prometteuse.
+
+## 10. Références
+
+- Radford, Alec, et al. (2022). "Whisper: Multilingual and multitask speech recognition model." OpenAI.
+- [Hugging Face - Fine-tune Whisper](https://huggingface.co/blog/fine-tune-whisper)
+- [Hugging Face - Word Error Rate (WER)](https://huggingface.co/metrics/wer)
+- Google AI. (2019). "SpecAugment: A New Data Augmentation Method for Speech Recognition." [Google Blog](https://ai.googleblog.com/2019/04/specaugment-new-data-augmentation.html)
+- [GitHub Repository - Finetuning Whisper](https://github.com/sirius911/Finetuning)
