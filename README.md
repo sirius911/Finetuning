@@ -134,9 +134,7 @@ audio,sentence
 
 Dans le principe, nous aurions besoins de véritable rapports médicaux avec les voix des personnels médicaux, les dictants. N'ayant pas encore cela, nous avons eu l'idée de faire faire nos "rapports" médicaux par un LLM (Mistral) et de les faire lire par le TextToSpeech BARK. Biensur la pertinence des textes médicaux issue de Mistral, peut être sujet à interrogation, mais rappelons que notre but est de faire reconnaitre des termes médicaux, et donc de faire "entendre" au modèle Whisper ces mots dans des contextes variés. Notre objectif est alors de montrer que le modèle s'améliore en ayant entendu ces mots. Passer à des textes réels et des voix humaines, ne peut qu'améliorer le modèle, tant dans par les contextes médicaux, plus "réels" que par les voix humaine.
 
-
-
-#### Charger l'ensemble de données (**Dataset**)
+### Charger l'ensemble de données (**Dataset**)
 
 
 ```python
@@ -621,4 +619,4 @@ print(f"Fichier {tokenizer_file} copié dans {output_dir}")
 
 ![Résultats](images/Resultat.png)
 
-On note une nette diminution du WER qui montre que l'entainement à fonctionné et que les audios tests sont mieux transcripts apèrs le finetuning.
+On note une nette diminution du WER qui montre que l'entraînement à fonctionné et que les audios tests sont mieux transcripts après le finetuning.
