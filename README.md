@@ -1,10 +1,12 @@
 # Fine-tuning Whisper pour la Reconnaissance Automatique de la Parole Médicale en Français
 
-## Cyrille LORIN
+## *Cyrille LORIN (CH de Périgueux)*
+Octobre 2024
 
 ## Résumé
 
-Cet article explore le processus de fine-tuning du modèle **Whisper** pour la transcription de termes médicaux en français. Nous avons utilisé le modèle Whisper-base et généré nos propres données à l'aide de modèles LLM Mistral pour générer des textes médicaux et Bark pour convertir ces textes en audio. Cet article inclut la préparation des données, l'architecture du modèle, et l'évaluation des performances avec des métriques telles que le **Word Error Rate** (WER).
+Cet article explore le processus de fine-tuning du modèle **Whisper** pour la transcription de termes médicaux en français. Nous avons utilisé le modèle Whisper-base et généré nos propres données à l'aide des modèles **LLM Mistral** pour produire des textes médicaux et le **TTS Bark** pour les convertir en audio. Le but de cette étude est de montrer que ce procédé spécifique permet d'améliorer les performances d'un modèle existant. L'article détaille la préparation des données, l'architecture du modèle, et l'évaluation des performances avec la métrique **Word Error Rate** (WER).
+
 
 ## Table des Matières
 1. Introduction
@@ -59,7 +61,7 @@ Grâce à son architecture flexible et ses capacités multilingues, Whisper peut
 
 ## 3. Versions des Modèles Whisper
 
-Whisper est disponible en plusieurs tailles de modèle, qui varient en termes de précision et de consommation de ressources. Nous avons utilisé **Whisper-base** pour notre projet, car il offre un bon compromis entre précision et rapidité d'entraînement.
+Whisper est disponible en plusieurs tailles de modèle, qui varient en termes de précision et de consommation de ressources. Nous avons utilisé **Whisper-base** pour notre projet, car il offre un bon compromis entre précision et rapidité d'entraînement pour cette expérience qui a été effectuée sur un ordinateur de bureau sans carte GPU. Le but à terme est d'entraîner des modèles plus larges avec des serveurs de bonne capacité autorisant la transcription et les calculs sur beaucoup plus de paramètres et donc une meilleur performance.
 
 | Version         | Taille (Go) | Paramètres | Largeur des Couches | Couches d'Attention |
 |-----------------|-------------|------------|---------------------|---------------------|
@@ -91,29 +93,29 @@ pip install --upgrade pip
 pip install --upgrade datasets[audio] transformers accelerate evaluate jiwer tensorboard soundfile pandas scikit-learn torch ctranslate2
 
 ```
-L'utilisation d'un environnement python est conseillé.(dans les sources il y a aussi les requirements.txt utilisés pour l'expérience)
+L'utilisation d'un environnement python est conseillé.
 Nous vous conseillons vivement de télécharger les checkpoints du modèle directement sur le Hugging Face Hub pendant l'entraînement. Au moins pour le premier entrainement. Par la suite on peut mettre l'adresse physique du modèle déjà téléchargé ou le modèle personnel auparavant entraîné.
 
 ## 5. Création des Données et Validité
 
 ### Génération de Textes Médicaux avec Mistral
 
-En raison du manque de données médicales vocales authentiques en français, nous avons généré nos propres données à l'aide du LLM **Mistral** pour créer des rapports médicaux couvrant des sujets comme les diagnostics et les traitements. Ensuite, ces textes ont été convertis en audio à l'aide du modèle **Text-to-Speech Bark**. Bien que Mistral puisse produire des textes de qualité variable, notre objectif est d'exposer Whisper aux termes médicaux dans des contextes variés. Cela permet au modèle d'apprendre ces termes, en prévoyant que l'utilisation future de voix humaines et de textes réels renforcera encore la performance du modèle.
+En raison du manque de données médicales vocales authentiques en français, nous avons généré nos propres données à l'aide du LLM **Mistral** pour créer des rapports médicaux couvrant des sujets comme les diagnostics et les traitements. Bien que Mistral puisse produire des textes de qualité variable et discutable du point de vue médicale, notre objectif est d'exposer Whisper aux termes médicaux dans des contextes variés. Ces textes doivent relativement cours pour ne pas dépasser à la lecture 30s. (*voir plus bas*)
 
 ### Conversion en Audio avec Bark (Text-to-Speech)
 
-Pour créer les fichiers audio correspondants, nous avons utilisé **Bark**, un modèle de text-to-speech (TTS). Bark a transformé les textes générés par LLama2 en fichiers audio, simulant la lecture des rapports médicaux. L'utilisation de ce pipeline permet de créer des données d'entraînement sans nécessiter de voix humaine.
+Les textes générés par **Mistral** ont ensuite été convertis en audio grâce au modèle **Text-to-Speech Bark**. Bark simule la lecture des rapports médicaux en utilisant différentes voix (hommes ou femmes), avec des accents variés, des hésitations ou des erreurs, ajoutant ainsi une diversité utile aux données. Cette approche présente l’avantage de générer des données d’entraînement réalistes sans avoir recours à des voix humaines. Ainsi, en se concentrant uniquement sur la qualité des rapports écrits, nous pourrions anonymiser ces documents et entraîner nos modèles sur d'importants volumes de données médicales.
 
 ### Structure des Données
 
 Les données sont organisées de la manière suivante pour être utilisées dans le processus de fine-tuning :
 
 ```
-└── data/
-    ├── audio/
-    ├── rapports/
-    ├── train.csv
-    └── test.csv
+data/
+|  ├── audio/
+|  ├── rapports/
+├── train.csv
+└── test.csv
 ```
 
 Le fichier CSV contient les chemins vers les fichiers audio et les transcriptions correspondantes, séparés en ensembles d'entraînement et de test. Voici un exemple de code pour générer les fichiers CSV :
@@ -173,7 +175,7 @@ nom_du_fichier_audio.wav, '*transcription*'
 
 ``` csv
 audio,sentence
-../data/audio/151.wav,"Le rapport biologique révèle une thyroïdite de Hashimoto caractérisée par une infiltration lymphocytaire et une fibrose diffuse, confirmant une pathologie auto-immune."
+data/audio/151.wav,"Le rapport biologique révèle une thyroïdite de Hashimoto caractérisée par une infiltration lymphocytaire et une fibrose diffuse, confirmant une pathologie auto-immune."
 ```
 
 ## 6. Procédure de Fine-Tuning
@@ -211,7 +213,7 @@ DatasetDict({
     })
 })
 ```
-Notre version modèle (checkpoint) est celui de base d'openAI 
+Nous utilisons le modèle **Whisper-base** d'OpenAI ("openai/whisper-base") comme point de départ. Lors de la première utilisation, il est téléchargé depuis le hub. Par la suite, nous pouvons spécifier un chemin personnalisé pour **model_name**, soit pour entraîner dans un environnement fermé, soit pour réentraîner un modèle déjà fine-tuné (par exemple, "/home/finetune/finetuned_model").
 
 
 ```python
@@ -250,7 +252,7 @@ Cette transformation est essentielle pour que Whisper puisse interpréter correc
 
 Le spectrogramme visuel permet d’analyser les composantes fréquentielles du signal audio à chaque instant, crucial pour la transcription vocale par Whisper. Grâce à l'extracteur de caractéristiques de **🤗 Transformers**, ces opérations de padding et de transformation en spectrogramme sont réalisées en une seule ligne de code, facilitant ainsi la préparation des données audio pour l'entraînement ou l'inférence du modèle.
 
-Heureusement pour nous, l'extracteur de caractéristiques 🤗 Transformers Whisper effectue à la fois le padding et la conversion du spectrogramme en une seule ligne de code ! Chargeons l'extracteur de caractéristiques à partir du point de contrôle pré-entraîné pour qu'il soit prêt pour nos données audio :
+Chargeons l'extracteur de caractéristiques à partir du point de contrôle pré-entraîné pour qu'il soit prêt pour nos données audio :
 
 
 ```python
@@ -264,7 +266,7 @@ Voyons maintenant comment charger un tokenizer Whisper. Le modèle Whisper produ
 
 Traditionnellement, lors de l'utilisation de modèles à encodeur seul pour l'ASR, nous décodons en utilisant la classification temporelle connexionniste ([CTC](https://distill.pub/2017/ctc/)). Dans ce cas, nous devons former un tokenizer CTC pour chaque ensemble de données que nous utilisons. L'un des avantages de l'utilisation d'une architecture codeur-décodeur est que nous pouvons directement exploiter le tokenizer du modèle pré-entraîné.
 
-Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour l'hindi, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification. Il suffit de spécifier la langue cible et la tâche. Ces arguments indiquent au tokenizer de préfixer les tokens de la langue et de la tâche au début des séquences d'étiquettes encodées :
+Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour le français, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification. Il suffit de spécifier la langue cible et la tâche. Ces arguments indiquent au tokenizer de préfixer les tokens de la langue et de la tâche au début des séquences d'étiquettes encodées :
 
 
 
@@ -274,11 +276,7 @@ from transformers import WhisperTokenizer
 tokenizer = WhisperTokenizer.from_pretrained(model_name, language="French", task="transcribe")
 ```
 
-
-> Conseil : l'article de blog peut être adapté à la traduction vocale en définissant la tâche sur traduire «*translate*» et la langue sur la langue du texte cible dans la ligne ci-dessus. Cela permettra d'ajouter à la tâche et à la langue les tokens nécessaires à la traduction vocale lors du prétraitement de l'ensemble de données.
-
-
-Nous pouvons vérifier que le tokenizer encode correctement les caractères hindis en encodant et en décodant le premier échantillon de l'ensemble de données Common Voice. Lors de l'encodage des transcriptions, le tokenizer ajoute des « jetons spéciaux » au début et à la fin de la séquence, y compris les jetons de début/fin de transcription, le jeton de langue et les jetons de tâche (comme spécifié par les arguments à l'étape précédente). Lors du décodage des identifiants d'étiquettes, nous avons la possibilité de « sauter » ces jetons spéciaux, ce qui nous permet de renvoyer une chaîne dans la forme d'entrée originale :
+Nous pouvons vérifier que le tokenizer encode correctement les caractères en français en encodant et en décodant un échantillon de l'ensemble de données. Lors de l'encodage des transcriptions, le tokenizer ajoute des « jetons spéciaux » au début et à la fin de la séquence, tels que les jetons de début/fin de transcription, de langue et de tâche. Lors du décodage, il est possible de « sauter » ces jetons pour retourner une chaîne similaire à celle de l'entrée originale.
 
 
 ```python
@@ -438,19 +436,20 @@ class DataCollatorSpeechSeq2SeqWithPadding:
 
         # Obtenir les séquences d'étiquettes symbolisées
         label_features = [{"input_ids": feature["labels"]} for feature in features]
-        # pad the labels to max length
+
+        # remplir les labels jusqu'à la longueur maximale
         labels_batch = self.processor.tokenizer.pad(label_features, return_tensors="pt")
 
-        # replace padding with -100 to ignore loss correctly
+        # remplacer le remplissage par -100 pour ignorer correctement la perte
         labels = labels_batch["input_ids"].masked_fill(labels_batch.attention_mask.ne(1), -100)
 
-        # if bos token is appended in previous tokenization step,
-        # cut bos token here as it's append later anyways
+        # si le jeton de début est ajouté lors de l'étape précédente
+        # le retirer ici puisqu'il sera de toute façon ajouté plus tard
         if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
             labels = labels[:, 1:]
 
-        # Set the attention mask
-        # create attention mask
+        # définir le masque d'attention
+        # créer un masque d'attention
         attention_mask = torch.ones(batch["input_features"].shape, dtype=torch.long)
         attention_mask[batch["input_features"] == 0] = 0
 
@@ -490,10 +489,10 @@ def compute_metrics(pred):
     pred_ids = pred.predictions
     label_ids = pred.label_ids
 
-    # replace -100 with the pad_token_id
+    # remplacer -100 par l'identifiant du jeton de remplissage
     label_ids[label_ids == -100] = tokenizer.pad_token_id
 
-    # we do not want to group tokens when computing the metrics
+    # nous ne voulons pas regrouper les jetons lors du calcul des métriques
     pred_str = tokenizer.batch_decode(pred_ids, skip_special_tokens=True)
     label_str = tokenizer.batch_decode(label_ids, skip_special_tokens=True)
 
@@ -507,11 +506,11 @@ def compute_metrics(pred):
 Dans la dernière étape, nous définissons tous les paramètres liés à la formation. Un sous-ensemble de paramètres est expliqué ci-dessous :
 
 
-* *output_dir* : répertoire local dans lequel enregistrer les poids du modèle. Ce sera également le nom du dépôt sur le Hugging Face Hub.
+* *output_dir* : répertoire local dans lequel enregistrer les poids du modèle.
 * *generation_max_length* : nombre maximal de tokens à générer de manière autorégressive pendant l'évaluation.
 * *save_steps* : pendant la formation, les points de contrôle intermédiaires seront enregistrés et téléchargés de manière asynchrone vers le Hub tous les save_steps pas de formation.
 * *eval_steps* : pendant la formation, l'évaluation des points de contrôle intermédiaires sera effectuée tous les eval_steps pas de formation.
-* *report_to* : où enregistrer les journaux de formation. Les plateformes supportées sont « azure_ml », « comet_ml », « mlflow », « neptune », « tensorboard » et « wandb ». Choisissez votre plateforme préférée ou laissez « tensorboard » pour vous connecter au Hub.
+* *report_to* : où enregistrer les journaux de formation. Les plateformes supportées sont « azure_ml », « comet_ml », « mlflow », « neptune », « tensorboard » et « wandb ». Choisissez votre plateforme préférée ou laissez « tensorboard ». Nous avons utilisé **Tensorboard**
 
 Pour plus de détails sur les autres arguments d'entraînement, consultez la [documentation](https://huggingface.co/docs/transformers/main_classes/trainer#transformers.Seq2SeqTrainingArguments) Seq2SeqTrainingArguments.
 
@@ -520,9 +519,9 @@ Pour plus de détails sur les autres arguments d'entraînement, consultez la [do
 from transformers import Seq2SeqTrainingArguments
 
 training_args = Seq2SeqTrainingArguments(
-    output_dir="./whisper-base-french-medic",  # change to a repo name of your choice
+    output_dir="./whisper-base-french-medic",
     per_device_train_batch_size=16,
-    gradient_accumulation_steps=1,  # increase by 2x for every 2x decrease in batch size
+    gradient_accumulation_steps=1,  # augmenter par 2x pour chaque réduction de 2x de la taille de lot (batch_size)
     learning_rate=1e-5,
     warmup_steps=500,
     max_steps=700, #5000
@@ -544,8 +543,6 @@ training_args = Seq2SeqTrainingArguments(
     logging_dir="./whisper-base-french-medic/logs/essais_base"
 )
 ```
-
-**Note** : si l'on ne souhaite pas télécharger les points de contrôle du modèle vers le Hub, définir push_to_hub=False.
 
 Nous pouvons transmettre les arguments d'entraînement au 🤗 Trainer avec notre modèle, notre jeu de données, notre collecteur de données et notre fonction compute_metrics :
 
@@ -598,7 +595,9 @@ processor.save_pretrained(finetuned_directory)
 ```
 ## 7. Adaptation pour whisperLive
 
-Pour notre reconnaissance en temps réel, nous utilisons les modèles faster-whisper, il nous faut donc les mettre dans ce format. Nous avons juste besoins de récupérer le tokenizer.json du modèle que l'on a entrainé et faire la transition par ctranslate2
+Pour la reconnaissance vocale en temps réel, **faster-whisper** est une variante optimisée de **Whisper** conçue pour des performances plus rapides avec un compromis sur l’utilisation de ressources. Les modèles **Whisper** standards sont plus lourds, mais offrent une plus grande précision en traitement par lot. **Faster-whisper** utilise **CTranslate2**, une bibliothèque spécialisée pour l’inférence rapide, particulièrement utile en temps réel ou sur des appareils à faible puissance. 
+
+Pour passer un modèle **Whisper** en **faster-whisper**, il faut convertir le modèle en utilisant **CTranslate2** et récupérer le fichier **tokenizer.json** du modèle préalablement fine-tuné, afin de maintenir la cohérence du vocabulaire lors de l'inférence.
 
 ```python
 import os
@@ -607,7 +606,7 @@ import tokenizers
 tokenizer_file = os.path.join(finetuned_directory, "tokenizer.json")
 print(f"save  {tokenizer_file}", end="")
 hf_tokenizer = tokenizers.Tokenizer.from_pretrained(model_name)
-# Save the tokenizer to a file in the specified directory
+# enregistrer le tokenizer dans un fichier dans le répertoire spécifié
 hf_tokenizer.save(tokenizer_file)
 print(" Ok")
 ```
@@ -644,16 +643,28 @@ print(f"Fichier {tokenizer_file} copié dans {output_dir}")
 ```
 ## 8. Résultats
 
-Les performances du modèle se sont améliorées avec chaque itération.
+Les graphiques générés par TensorBoard montrent les performances du modèle au cours de l'entraînement :
 
 |![Training](images/Progressions.png)
+
+
+1. **Perte (eval/loss)** : La perte diminue régulièrement, atteignant environ 0,28, signe de la convergence du modèle. Cette stabilisation après 600 étapes indique une bonne optimisation.
+
+2. **WER (Word Error Rate)** : Le WER suit une baisse significative, passant de 35 % à environ 15 %, montrant que le modèle améliore la transcription.
+
+3. **Taux d'apprentissage** : Le taux d'apprentissage suit un schéma de "warm-up" puis décroît. Cette approche, classique en optimisation, aide à éviter l'instabilité initiale et facilite la convergence vers une solution optimale. 
+
+L'ensemble des graphiques démontre une progression positive avec une bonne stabilité du modèle après plusieurs itérations.
+
+### Calcul du WER sur les données audio test:
+Le **WER** calculé avant et après l'entraînement, sur des audios tests qui n'ont pas été '*entendus*' par les deux modèles, passe de **64,01%** à **34,64%.**
 
 ![Résultats](images/Resultat.png)
 
 
 ## 9. Conclusion
 
-Le fine-tuning de Whisper pour la transcription des termes médicaux en français démontre qu'il est possible d'améliorer les performances même avec un ensemble de données généré artificiellement. En utilisant des technologies comme Mistral et Bark, nous avons pu générer des données vocales médicales et fine-tuner le modèle de manière efficace. Le WER a été réduit de manière significative avec 180 petits rqpports médicaux, rendant cette approche prometteuse.
+Le fine-tuning de Whisper pour la transcription des termes médicaux en français démontre qu'il est possible d'améliorer les performances même avec un ensemble de données généré artificiellement. En utilisant des technologies comme Mistral et Bark, nous avons pu générer des données vocales médicales et fine-tuner le modèle de manière efficace. Le WER a été réduit de manière significative avec 180 petits rapports médicaux, rendant cette approche prometteuse.
 
 ## 10. Références
 
