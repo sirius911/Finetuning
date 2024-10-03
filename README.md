@@ -7,6 +7,7 @@ Octobre 2024
 
 Cet article explore le processus de fine-tuning du modèle **Whisper** pour la transcription de termes médicaux en français. Nous avons utilisé le modèle Whisper-base et généré nos propres données à l'aide des modèles **LLM Mistral** pour produire des textes médicaux et le **TTS Bark** pour les convertir en audio. Le but de cette étude est de montrer que ce procédé spécifique permet d'améliorer les performances d'un modèle existant. L'article détaille la préparation des données, l'architecture du modèle, et l'évaluation des performances avec la métrique **Word Error Rate** (WER).
 
+---
 
 ## Table des Matières
 1. Introduction
@@ -21,6 +22,7 @@ Cet article explore le processus de fine-tuning du modèle **Whisper** pour la t
 10. Références
 
 ---
+<div style="page-break-after: always;"></div>
 
 ## 1. Introduction
 
@@ -45,6 +47,8 @@ Whisper est basé sur un modèle **seq2seq** (séquence à séquence) avec une a
 2. **Encodage** : Le spectrogramme est encodé par le **transformer** pour générer une séquence d'états cachés.
 3. **Décodage** : Le décodeur prédit la séquence de mots de sortie (texte) en fonction des états cachés et des jetons de texte prédits précédemment.
 
+<div style="page-break-after: always;"></div>
+
 La **figure 1** ci-dessous illustre cette architecture.
 
 ![modèle Whisper](images/whisper_architecture.jpg "figure 1")
@@ -58,6 +62,8 @@ Whisper utilise une fonction objective standard de l’**entropie croisée**, pe
 Lors de son pré-entraînement, Whisper atteint des performances remarquables, notamment un **WER de 3%** sur le sous-ensemble test-propre de **LibriSpeech** et un état de l'art de **4,7%** sur **TED-LIUM**.
 
 Grâce à son architecture flexible et ses capacités multilingues, Whisper peut être finement ajusté pour des langues spécifiques ou des applications spécialisées, comme la transcription médicale, avec un ajustement minimal nécessaire.
+
+<div style="page-break-after: always;"></div>
 
 ## 3. Versions des Modèles Whisper
 
@@ -93,14 +99,14 @@ pip install --upgrade pip
 pip install --upgrade datasets[audio] transformers accelerate evaluate jiwer tensorboard soundfile pandas scikit-learn torch ctranslate2
 
 ```
-L'utilisation d'un environnement python est conseillé.
+L'utilisation d'un environnement python est conseillée.
 Nous vous conseillons vivement de télécharger les checkpoints du modèle directement sur le Hugging Face Hub pendant l'entraînement. Au moins pour le premier entrainement. Par la suite on peut mettre l'adresse physique du modèle déjà téléchargé ou le modèle personnel auparavant entraîné.
 
 ## 5. Création des Données et Validité
 
 ### Génération de Textes Médicaux avec Mistral
 
-En raison du manque de données médicales vocales authentiques en français, nous avons généré nos propres données à l'aide du LLM **Mistral** pour créer des rapports médicaux couvrant des sujets comme les diagnostics et les traitements. Bien que Mistral puisse produire des textes de qualité variable et discutable du point de vue médicale, notre objectif est d'exposer Whisper aux termes médicaux dans des contextes variés. Ces textes doivent relativement cours pour ne pas dépasser à la lecture 30s. (*voir plus bas*)
+En raison du manque de données médicales vocales authentiques en français, nous avons généré nos propres données à l'aide du LLM **Mistral** pour créer des rapports médicaux couvrant des sujets comme les diagnostics et les traitements. Bien que Mistral puisse produire des textes de qualité variable et discutable du point de vue médicale, notre objectif est d'exposer Whisper aux termes médicaux dans des contextes variés. Ces textes doivent être relativement courts pour ne pas dépasser à la lecture 30s. (*voir plus bas*)
 
 ### Conversion en Audio avec Bark (Text-to-Speech)
 
@@ -118,45 +124,49 @@ data/
 └── test.csv
 ```
 
-Le fichier CSV contient les chemins vers les fichiers audio et les transcriptions correspondantes, séparés en ensembles d'entraînement et de test. Voici un exemple de code pour générer les fichiers CSV :
+Le fichier CSV contient les chemins vers les fichiers audio et les transcriptions correspondantes, séparés en ensembles d'entraînement et de test.
+
+<div style="page-break-after: always;"></div>
+
+Voici un exemple de code pour générer les fichiers CSV :
 
 ```python
 import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# Define the paths
+# Définir les chemins
 audio_dir = 'data/audio'
 text_dir = 'data/rapports'
 
-# Create a list to hold the data
+# Créer une liste pour contenir les données
 data = []
 
-# Loop over each file in the audio directory
+# Boucle sur chaque fichier dans le répertoire audio
 for audio_file in sorted(os.listdir(audio_dir)):
-    if audio_file.endswith('.wav'):  # Assuming the audio files are in .wav format
-        # Construct the corresponding text file path
+    if audio_file.endswith('.wav'):  # En supposant que les fichiers audio sont au format .wav
+        # Construire le chemin correspondant du fichier texte
         text_file = os.path.splitext(audio_file)[0] + '.txt'
         text_file_path = os.path.join(text_dir, text_file)
         
-        # Read the transcription text if the file exists
+        # Lire la transcription si le fichier existe
         if os.path.exists(text_file_path):
             with open(text_file_path, 'r', encoding='utf-8') as f:
                 transcription = f.read().strip()
         
-            # Add the information to the data list
+            # Ajouter les informations à la liste des données
             data.append({
                 'audio': os.path.join(audio_dir, audio_file),
                 'sentence': transcription
             })
 
-# Convert the list to a DataFrame
+# Convertir la liste en DataFrame
 df = pd.DataFrame(data)
 
-# Split the data into 80% train and 20% test
+# Diviser les données en 80% pour l'entraînement et 20% pour le test
 train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
 
-# Save the DataFrame to separate CSV files for train and test
+# Sauvegarder le DataFrame dans des fichiers CSV séparés pour l'entraînement et le test
 train_df.to_csv('train.csv', index=False)
 test_df.to_csv('test.csv', index=False)
 
@@ -213,7 +223,9 @@ DatasetDict({
     })
 })
 ```
-Nous utilisons le modèle **Whisper-base** d'OpenAI ("openai/whisper-base") comme point de départ. Lors de la première utilisation, il est téléchargé depuis le hub. Par la suite, nous pouvons spécifier un chemin personnalisé pour **model_name**, soit pour entraîner dans un environnement fermé, soit pour réentraîner un modèle déjà fine-tuné (par exemple, "/home/finetune/finetuned_model").
+Nous utilisons le modèle **Whisper-base** d'OpenAI ("openai/whisper-base") comme point de départ. Lors de la première utilisation, il est téléchargé depuis le hub.
+
+Par la suite, nous pouvons spécifier un chemin personnalisé pour **model_name**, soit pour entraîner dans un environnement fermé, soit pour réentraîner un modèle déjà fine-tuné (par exemple, "/home/finetune/finetuned_model").
 
 
 ```python
@@ -234,7 +246,7 @@ Le pipeline ASR peut être décomposé en trois éléments :
 2.   Le modèle qui effectue le mappage séquence-séquence
 3.   Un tokenizer qui post-traite les sorties du modèle au format texte.
 
-Dans 🤗 Transformers, le modèle Whisper est associé à un extracteur de caractéristiques et à un tokenizer, appelés respectivement WhisperFeatureExtractor et WhisperTokenizer.
+Dans **Transformers**, le modèle Whisper est associé à un extracteur de caractéristiques et à un tokenizer, appelés respectivement WhisperFeatureExtractor et WhisperTokenizer.
 
 **Charger l'extracteur de caractéristiques WhisperFeatureExtractor**
 
@@ -244,13 +256,15 @@ Whisper utilise un **extracteur de caractéristiques** qui effectue deux tâches
 
 2. **Transformation en spectrogramme log-Mel** : L’audio est ensuite converti en **spectrogramme log-Mel**, une représentation visuelle des fréquences audio dans le temps. Le long de l'axe des ordonnées se trouvent les **canaux Mel**, qui représentent des plages de fréquences spécifiques, tandis que l'axe des abscisses représente le temps. Chaque pixel du spectrogramme reflète l’intensité logarithmique de chaque bin de fréquence à un moment donné. Cette représentation est standard dans le traitement de la parole, car elle se rapproche de la perception auditive humaine.
 
+<div style="page-break-after: always;"></div>
+
 Cette transformation est essentielle pour que Whisper puisse interpréter correctement les entrées audio. Le **spectrogramme log-Mel** est la forme d’entrée attendue par le modèle Whisper, permettant une compréhension plus fine des variations de fréquence, comme illustré dans la **Figure 2** ci-dessous.
 
 ![Spectrogramme](images/spectrogram.jpg)
 
 **Figure 2** : Représentation d'un spectrogramme log-Mel. À gauche, un signal audio échantillonné ; à droite, le spectrogramme correspondant. Les canaux Mel représentent les fréquences perçues par l'oreille humaine. Source : [Google SpecAugment Blog.](https://ai.googleblog.com/2019/04/specaugment-new-data-augmentation.html)
 
-Le spectrogramme visuel permet d’analyser les composantes fréquentielles du signal audio à chaque instant, crucial pour la transcription vocale par Whisper. Grâce à l'extracteur de caractéristiques de **🤗 Transformers**, ces opérations de padding et de transformation en spectrogramme sont réalisées en une seule ligne de code, facilitant ainsi la préparation des données audio pour l'entraînement ou l'inférence du modèle.
+Le spectrogramme visuel permet d’analyser les composantes fréquentielles du signal audio à chaque instant, crucial pour la transcription vocale par Whisper. Grâce à l'extracteur de caractéristiques de **Transformers**, ces opérations de padding et de transformation en spectrogramme sont réalisées en une seule ligne de code, facilitant ainsi la préparation des données audio pour l'entraînement ou l'inférence du modèle.
 
 Chargeons l'extracteur de caractéristiques à partir du point de contrôle pré-entraîné pour qu'il soit prêt pour nos données audio :
 
@@ -266,9 +280,11 @@ Voyons maintenant comment charger un tokenizer Whisper. Le modèle Whisper produ
 
 Traditionnellement, lors de l'utilisation de modèles à encodeur seul pour l'ASR, nous décodons en utilisant la classification temporelle connexionniste ([CTC](https://distill.pub/2017/ctc/)). Dans ce cas, nous devons former un tokenizer CTC pour chaque ensemble de données que nous utilisons. L'un des avantages de l'utilisation d'une architecture codeur-décodeur est que nous pouvons directement exploiter le tokenizer du modèle pré-entraîné.
 
-Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour le français, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification. Il suffit de spécifier la langue cible et la tâche. Ces arguments indiquent au tokenizer de préfixer les tokens de la langue et de la tâche au début des séquences d'étiquettes encodées :
+Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour le français, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification.
 
+<div style="page-break-after: always;"></div>
 
+Il suffit de spécifier la langue cible et la tâche. Ces arguments indiquent au tokenizer de préfixer les tokens de la langue et de la tâche au début des séquences d'étiquettes encodées :
 
 ```python
 from transformers import WhisperTokenizer
@@ -290,11 +306,13 @@ print(f"Decoded w/ special:    {decoded_with_special}")
 print(f"Decoded w/out special: {decoded_str}")
 print(f"Are equal:             {input_str == decoded_str}")
 ```
-
+```
     Input:                 L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide.
     Decoded w/ special:    <|startoftranscript|><|fr|><|transcribe|><|notimestamps|>L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide.<|endoftext|>
     Decoded w/out special: L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide.
     Are equal:             True
+```
+<div style="page-break-after: always;"></div>
 
 ## Combiner pour créer un WhisperProcessor
 
@@ -330,6 +348,8 @@ from datasets import Audio
 dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 ```
 
+<div style="page-break-after: always;"></div>
+
 Le rechargement du premier échantillon audio dans l'ensemble de données *Medic* le rééchantillonnera à la fréquence d'échantillonnage souhaitée :
 
 
@@ -346,7 +366,7 @@ Les valeurs du tableau peuvent être différentes.
 Nous pouvons maintenant écrire une fonction pour préparer nos données pour le modèle :
 
 
-1.   Nous chargeons et rééchantillonnons les données audio en appelant batch[« audio »]. Comme expliqué ci-dessus, 🤗 Datasets effectue toutes les opérations de rééchantillonnage nécessaires à la volée.
+1.   Nous chargeons et rééchantillonnons les données audio en appelant batch[« audio »]. Comme expliqué ci-dessus, *Datasets* effectue toutes les opérations de rééchantillonnage nécessaires à la volée.
 2.   Nous utilisons l'extracteur de caractéristiques pour calculer les caractéristiques d'entrée du spectrogramme log-Mel à partir de notre tableau audio unidimensionnel.
 3.   Nous codons les transcriptions en identifiants d'étiquettes à l'aide du tokenizer.
 
@@ -364,6 +384,8 @@ def prepare_dataset(batch):
     return batch
 ```
 
+<div style="page-break-after: always;"></div>
+
 Nous pouvons appliquer la fonction de préparation des données à tous nos exemples d'apprentissage en utilisant la méthode .map du jeu de données :
 
 
@@ -380,17 +402,19 @@ Très bien ! Avec cela, nous avons nos données entièrement préparées pour l'
 > Note : Actuellement, les jeux de données utilisent à la fois torchaudio et librosa pour le chargement et le rééchantillonnage audio. Si vous souhaitez mettre en œuvre votre propre chargement/échantillonnage de données, vous pouvez utiliser la colonne « path » pour obtenir le chemin du fichier audio et ignorer la colonne « audio ».
 
 ## Training et Evaluation
-Maintenant que nous avons préparé nos données, nous sommes prêts à nous plonger dans le pipeline de formation. Le 🤗 Trainer va faire le gros du travail à notre place. Tout ce que nous avons à faire, c'est :
+Maintenant que nous avons préparé nos données, nous sommes prêts à nous plonger dans le pipeline de formation. Le *Trainer* va faire le gros du travail à notre place. Tout ce que nous avons à faire, c'est :
 
 *   Charger un point de contrôle pré-entraîné : nous devons charger un point de contrôle pré-entraîné et le configurer correctement pour l'entraînement.
 *   Définir un collateur de données : le collateur de données prend nos données prétraitées et prépare des tenseurs PyTorch prêts pour le modèle.
 * Métriques d'évaluation : lors de l'évaluation, nous voulons évaluer le modèle à l'aide de la métrique du taux d'erreur sur les mots (WER). Nous devons définir une fonction compute_metrics qui gère ce calcul.
-* Définir les arguments de formation : ils seront utilisés par le 🤗 *Trainer* pour construire le programme de formation.
+* Définir les arguments de formation : ils seront utilisés par le *Trainer* pour construire le programme de formation.
 
 Une fois le modèle affiné, nous l'évaluerons sur les données de test afin de vérifier que nous l'avons correctement entraîné à transcrire des termes médicaux.
 
+<div style="page-break-after: always;"></div>
+
 ## Charger un point de contrôle pré-entraîné (Pre-Trained Checkpoint)
-Nous commencerons notre cycle de réglage fin à partir du point de contrôle pré-entraîné de Whisper small. Pour ce faire, nous chargerons les poids pré-entraînés du Hugging Face Hub. Encore une fois, cette opération est triviale grâce à l'utilisation de 🤗 Transformers !
+Nous commencerons notre cycle de réglage fin à partir du point de contrôle pré-entraîné de Whisper small. Pour ce faire, nous chargerons les poids pré-entraînés du Hugging Face Hub. Encore une fois, cette opération est triviale grâce à l'utilisation de **Transformers** !
 
 
 ```python
@@ -399,7 +423,7 @@ from transformers import WhisperForConditionalGeneration
 model = WhisperForConditionalGeneration.from_pretrained(model_name)
 ```
 
-Au moment de l'inférence, le modèle Whisper détecte automatiquement la langue de l'audio source et prédit les identifiants de jetons dans cette langue. Dans les cas où la langue de l'audio source est connue a-priori, comme dans le cas d'un réglage fin multilingue, il est avantageux de définir la langue de manière explicite. Cela permet d'éviter les scénarios dans lesquels la langue incorrecte est prédite, ce qui entraîne une divergence entre le texte prédit et la langue réelle au cours de la génération. Pour ce faire, nous définissons les arguments *language* et *task* dans la configuration de la génération.
+Au moment de l'inférence, le modèle Whisper détecte automatiquement la langue de l'audio source et prédit les identifiants de jetons dans cette langue. Dans les cas où la langue de l'audio source est connue à priori, comme dans le cas d'un réglage fin multilingue, il est avantageux de définir la langue de manière explicite. Cela permet d'éviter les scénarios dans lesquels la langue incorrecte est prédite, ce qui entraîne une divergence entre le texte prédit et la langue réelle au cours de la génération. Pour se faire, nous définissons les arguments *language* et *task* dans la configuration de la génération.
 
 
 ```python
@@ -410,16 +434,16 @@ model.generation_config.task = "transcribe"
 ## Définir un collecteur de données (DataCollator)
 Le collecteur de données pour un modèle vocal séquence à séquence est unique en ce sens qu'il traite les *input_features* et *labels* indépendamment : les caractéristiques d'entrée (*input_features*) doivent être traitées par l'extracteur de caractéristiques (*extractor*) et les étiquettes (*labels*) par le tokenizer.
 
-Les *input_features* ont déjà été ramenés à 30 secondes et converties en un spectrogramme log-Mel de dimension fixe, de sorte qu'il ne nous reste plus qu'à les convertir en tenseurs PyTorch en lots. Nous le faisons en utilisant la méthode .pad de l'extractor avec return_tensors=pt. Notez qu'aucun rembourrage supplémentaire (*additional padding*)n'est appliqué ici puisque les entrées sont de dimension fixe, les *input_features* sont simplement convertis en tenseurs PyTorch.
+Les *input_features* ont déjà été ramenés à 30 secondes et converties en un spectrogramme log-Mel de dimension fixe, de sorte qu'il ne nous reste plus qu'à les convertir en tenseurs PyTorch en lots. Nous le faisons en utilisant la méthode .pad de l'extractor avec return_tensors=pt. Notez qu'aucun rembourrage supplémentaire (*additional padding*) n'est appliqué ici puisque les entrées sont de dimension fixe, les *input_features* sont simplement convertis en tenseurs PyTorch.
 
-En revanche, les *labels* ne sont pas tamponnés (*un-padded*). Nous commençons par ajouter un *pad* aux séquences jusqu'à la longueur maximale du lot à l'aide de la méthode .pad du tokenizer. Les jetons de remplissage (*padding tokkens*)sont ensuite remplacés par -100 afin que ces jetons ne soient pas pris en compte lors du calcul de la perte. Nous coupons ensuite le début du jeton de transcription du début de la séquence d'étiquettes, car nous l'ajouterons plus tard au cours de la formation.
+En revanche, les *labels* ne sont pas tamponnés (*un-padded*). Nous commençons par ajouter un *pad* aux séquences jusqu'à la longueur maximale du lot à l'aide de la méthode .pad du tokenizer. Les jetons de remplissage (*padding tokkens*) sont ensuite remplacés par -100 afin que ces jetons ne soient pas pris en compte lors du calcul de la perte. Nous coupons ensuite le début du jeton de transcription du début de la séquence d'étiquettes, car nous l'ajouterons plus tard au cours de la formation.
+
+<div style="page-break-after: always;"></div>
 
 Nous pouvons nous appuyer sur le **WhisperProcessor** que nous avons défini précédemment pour effectuer les opérations d'extraction de caractéristiques et de symbolisation :
 
-
 ```python
 import torch
-
 from dataclasses import dataclass
 from typing import Any, Dict, List, Union
 
@@ -427,7 +451,6 @@ from typing import Any, Dict, List, Union
 class DataCollatorSpeechSeq2SeqWithPadding:
     processor: Any
     decoder_start_token_id: int
-
     def __call__(self, features: List[Dict[str, Union[List[int], torch.Tensor]]]) -> Dict[str, torch.Tensor]:
         # diviser les entrées et les étiquettes, car elles doivent être de longueurs différentes et nécessitent des méthodes de remplissage différentes
         # traite d'abord les entrées audio en renvoyant simplement des tenseurs de torch
@@ -448,14 +471,11 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         if (labels[:, 0] == self.decoder_start_token_id).all().cpu().item():
             labels = labels[:, 1:]
 
-        # définir le masque d'attention
-        # créer un masque d'attention
+        # définir le masque d'attention et le créer
         attention_mask = torch.ones(batch["input_features"].shape, dtype=torch.long)
         attention_mask[batch["input_features"] == 0] = 0
-
         batch["attention_mask"] = attention_mask
         batch["labels"] = labels
-
         return batch
 ```
 
@@ -471,7 +491,7 @@ data_collator = DataCollatorSpeechSeq2SeqWithPadding(
 
 ## Evaluations
 
-Après l'entraînement, nous évaluons les performances du modèle avec le **Word Error Rate (WER)**, qui est la métrique standard pour évaluer les systèmes de reconnaissance vocale (ASR). Le WER calcule le pourcentage d'erreurs dans la transcription, en comparant le texte de sortie avec une référence correcte. Nous chargeons la métrique WER via 🤗 **Evaluate**. Pour plus de détails sur le calcul du WER, vous pouvez consulter la [documentation](https://huggingface.co/metrics/wer).
+Après l'entraînement, nous évaluons les performances du modèle avec le **Word Error Rate (WER)**, qui est la métrique standard pour évaluer les systèmes de reconnaissance vocale (ASR). Le WER calcule le pourcentage d'erreurs dans la transcription, en comparant le texte de sortie avec une référence correcte. Nous chargeons la métrique WER via **Evaluate**. Pour plus de détails sur le calcul du WER, vous pouvez consulter la [documentation](https://huggingface.co/metrics/wer).
 
 
 
@@ -500,6 +520,8 @@ def compute_metrics(pred):
 
     return {"wer": wer}
 ```
+
+<div style="page-break-after: always;"></div>
 
 ## Définir les arguments de formation (Training Arguments)
 
@@ -544,7 +566,9 @@ training_args = Seq2SeqTrainingArguments(
 )
 ```
 
-Nous pouvons transmettre les arguments d'entraînement au 🤗 Trainer avec notre modèle, notre jeu de données, notre collecteur de données et notre fonction compute_metrics :
+<div style="page-break-after: always;"></div>
+
+Nous pouvons transmettre les arguments d'entraînement au *Trainer* avec notre modèle, notre jeu de données, notre collecteur de données et notre fonction compute_metrics :
 
 ```python
 from transformers import Seq2SeqTrainer
@@ -581,8 +605,9 @@ trainer.train()
 
 L'entraînement a duré 5h37, et peut varier en fonction du modèle de base, de l'utilisation ou non d'un GPU ou de celui alloué au Google Colab si vous l'effectuez avec. Il est possible que vous rencontriez une erreur CUDA « out-of-memory » lorsque vous commencez l'entraînement. Dans ce cas, vous pouvez réduire la taille du lot  (per_device_train_batch_size) par incréments d'un facteur 2 et utiliser les étapes d'accumulation du gradient (gradient_accumulation_steps) pour compenser.
 
-On donne le nom de notre modèle entraîné et on le sauvegarde
+<div style="page-break-after: always;"></div>
 
+On donne le nom de notre modèle entraîné et on le sauvegarde
 
 ```python
 finetuned_directory = "./whisper-base-ch-perigueux"
@@ -610,10 +635,11 @@ hf_tokenizer = tokenizers.Tokenizer.from_pretrained(model_name)
 hf_tokenizer.save(tokenizer_file)
 print(" Ok")
 ```
+<div style="page-break-after: always;"></div>
+
 ```
     save  ./whisper-base-ch-perigueux/tokenizer.json Ok
 ```
-
 ```python
 import shutil
 import ctranslate2
@@ -641,6 +667,9 @@ print(f"Fichier {tokenizer_file} copié dans {output_dir}")
     Le modèle a été converti et sauvegardé dans ./whisper-base-ch-perigueux-faster-whisper
     Fichier ./whisper-base-ch-perigueux/tokenizer.json copié dans ./whisper-base-ch-perigueux-faster-whisper
 ```
+
+<div style="page-break-after: always;"></div>
+
 ## 8. Résultats
 
 Les graphiques générés par TensorBoard montrent les performances du modèle au cours de l'entraînement :
