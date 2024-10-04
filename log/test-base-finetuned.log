@@ -1,0 +1,144 @@
+**************** Model : base-finetuned ****************
+Les transcriptions seront écrites dans ../data/transcriptions_base-finetuned].
+Chargement du model base-finetuned [/home/lorcyr/Fine-tunning/fine-tune/whisper-base-ch-perigueux-faster-whisper] Ok en 0.280s
+../data/audio/103.wav -> ../data/transcriptions_base-finetuned/103.txt
+Le scanner cérébral révèle une hypodensite et corticale temporoparie étalgose suggestive d'affarchtusystemique aiguë.]
+Transcription en 7.473s (wer=53.85%)
+../data/audio/109.wav -> ../data/transcriptions_base-finetuned/109.txt
+Le scanner pelvien révèle une morphologie anatomique normale sans anomalies évocatrisme de pathologies notables.]
+Transcription en 7.659s (wer=7.14%)
+../data/audio/11.wav -> ../data/transcriptions_base-finetuned/11.txt
+La procédure de réparation du hernie inguinal s'est déroulée sans enpombre, avec une dissection minutieuse des lano-inguinales et un sutur anatomique impeccable.]
+Transcription en 1.389s (wer=34.78%)
+../data/audio/111.wav -> ../data/transcriptions_base-finetuned/111.txt
+Le scanner abdominal révèle une appendicite aiguë avec dilatation de l'appendice et pachement péritonéal.]
+Transcription en 0.873s (wer=7.14%)
+../data/audio/118.wav -> ../data/transcriptions_base-finetuned/118.txt
+Le scanner thoracique révèle une embolie pulmonaire avec un thrombosementère visible dans l'artères Pulmonaires droites.]
+Transcription en 0.799s (wer=37.50%)
+../data/audio/122.wav -> ../data/transcriptions_base-finetuned/122.txt
+L'IRM cérébral révèle une anomalie de signalité due hyperintense à au niveau que la substance blanche périventriculaire, suggérant possible démyélimisation.]
+Transcription en 1.235s (wer=33.33%)
+../data/audio/136.wav -> ../data/transcriptions_base-finetuned/136.txt
+Le rapport révèle une leucocyturie significative, suggestive du sé d'hénère et liangent avec présence de bactériury et matériel micro-scopique.]
+Transcription en 1.210s (wer=41.18%)
+../data/audio/15.wav -> ../data/transcriptions_base-finetuned/15.txt
+La plastie de la hernie inguinale s'est déroulée sans complications postopératoires, avec une réintervention tissu léroptimal et Une cicatrisation parfaite.]
+Transcription en 5.430s (wer=15.00%)
+../data/audio/157.wav -> ../data/transcriptions_base-finetuned/157.txt
+L'arthroplastie totale de la hanche s'est déroulée sans complications, avec une réduction parfaite et oustébilité articulaire optimal.]
+Transcription en 0.990s (wer=16.67%)
+../data/audio/163.wav -> ../data/transcriptions_base-finetuned/163.txt
+La réparation du ligament croisé antérieur a été réalisée avec succès, utilisant une greffe autologue du tendon ischio-jambier , sans complications peropératoires.]
+Transcription en 1.176s (wer=0.00%)
+../data/audio/167.wav -> ../data/transcriptions_base-finetuned/167.txt
+La fusion vertébrale a été réalisée avec succès, sans complication postopératoire notable permettant une stabilisation optimante de la colonne vertaire brrale.]
+Transcription en 1.055s (wer=30.00%)
+../data/audio/17.wav -> ../data/transcriptions_base-finetuned/17.txt
+La mastectomie ultilatérale s'est déroulée sans incident peropératoire, avec une hémostase parfaite et Une préservation optimalte des structures vasculaires and nerveuses adjacentes en biologie.]
+Transcription en 7.801s (wer=22.73%)
+../data/audio/173.wav -> ../data/transcriptions_base-finetuned/173.txt
+La réduction de la fracture du lumeurus a été réalisée avec succès, La continuité corticale. Un étérétable etulastabilité articulaire Aient éconfirmée par ex-anachlinique]
+Transcription en 2.877s (wer=46.43%)
+../data/audio/182.wav -> ../data/transcriptions_base-finetuned/182.txt
+Suite à la craniotomie, l'exision de latimole gliale a révélé une infiltration parenchymateuse étendue nécessitant Une résection méticuleose pour éviter les lésions vasculaires adjacentes.]
+Transcription en 1.284s (wer=16.00%)
+../data/audio/187.wav -> ../data/transcriptions_base-finetuned/187.txt
+L'intervention sur la colonne vertébrale pour hénérnie discal a nécessité une laminectomie et une discectomie, avec Une décompression radiculaire réussie à être dure. Et una stabilité postopératoire satisfaisante ? L'attabement de lundi en France]
+Transcription en 11.798s (wer=46.15%)
+../data/audio/19.wav -> ../data/transcriptions_base-finetuned/19.txt
+La mastectomie dilatérale s'est déroulée sans incident perobéréatoire, avec une hémostase parfaite et un préservation optimal des structures anatomiques adjacentes.]
+Transcription en 1.129s (wer=20.00%)
+../data/audio/196.wav -> ../data/transcriptions_base-finetuned/196.txt
+La résection corticale frontale a permis une désactivation efficace des foyers épileptogènes, améliorant significativement le contrôle bécrit sur de patient.]
+Transcription en 0.990s (wer=19.05%)
+../data/audio/199.wav -> ../data/transcriptions_base-finetuned/199.txt
+La résection corticale temporale a permis une désaptivation significative des foyers épilectogènes, avec Une améliorations notables de crises postopératoires.]
+Transcription en 1.072s (wer=26.32%)
+../data/audio/201.wav -> ../data/transcriptions_base-finetuned/201.txt
+La décompression microvasculaire a révélé une névragie trigéminale, associée à un compression par avésosemgar aberrant et nécessitant une manipulation delicate pour préserver l'intégrité des fibres nerveuses.]
+Transcription en 1.421s (wer=25.93%)
+../data/audio/202.wav -> ../data/transcriptions_base-finetuned/202.txt
+La décompression microvasculaire a permis une alidération efficace d'une herde légiminal, avec un réduction significatif des symptômes évragiques postopératoires.]
+Transcription en 1.194s (wer=42.11%)
+../data/audio/204.wav -> ../data/transcriptions_base-finetuned/204.txt
+Une décompression microvasculaire a été réalisée avec succès, soulageant la compression neurale et améliorée dans le vascularisation local sans complications postopératoires notables.]
+Transcription en 1.251s (wer=19.05%)
+../data/audio/223.wav -> ../data/transcriptions_base-finetuned/223.txt
+La correction de la tétralogie du Fallot a été réalisée avec succès, incluant une réparation à communication interventriculaire et un reconstruction d'artère pulmonaire.]
+Transcription en 1.138s (wer=24.00%)
+../data/audio/224.wav -> ../data/transcriptions_base-finetuned/224.txt
+La réparation de la communication interventriculaire et l'ablation du canal artérieur ont été réalisée avec succès, sans complications hémodinamiques notables.]
+Transcription en 1.177s (wer=34.78%)
+../data/audio/225.wav -> ../data/transcriptions_base-finetuned/225.txt
+La chirgie a révélé une anomalie de la valve ortique nécessitant d'une réparation méticuleuse pour corriger lasténose et éviter una suffisance microale postopératoire. R]
+Transcription en 1.233s (wer=37.50%)
+../data/audio/226.wav -> ../data/transcriptions_base-finetuned/226.txt
+L'implantation du stimulateur cardiaque s'est déroulée sans complications, avec une anastésie générale bien tolérées et un hémostase parfaite au niveau de site des fonctions sous-cladiculaires.]
+Transcription en 1.412s (wer=28.00%)
+../data/audio/23.wav -> ../data/transcriptions_base-finetuned/23.txt
+L'hystérectomie abdominale s'est déroulée sans complications, avec une hémostase parfaite et un conservation optimal des tissus adjacentes.]
+Transcription en 1.000s (wer=17.65%)
+../data/audio/26.wav -> ../data/transcriptions_base-finetuned/26.txt
+La césarienne s'est déroulée sans complications, avec une incision fannistie et Une extraction facile du fétus suivi dune hémostase parfaite Et D.Une suture emploi anatomique Lorsque lancère a été utilisale pour les étudiants de l'éthématome]
+Transcription en 3.167s (wer=57.69%)
+../data/audio/37.wav -> ../data/transcriptions_base-finetuned/37.txt
+Cher confrère, je vous serai reconnaissant de bien vouloir prescrire une antibiothérapie adaptée à ce patient présent en infection respiratoire aiguë avec un intention particulière organomopatique bactérienne.]
+Transcription en 1.411s (wer=28.57%)
+../data/audio/39.wav -> ../data/transcriptions_base-finetuned/39.txt
+Pourriez-vous prescrire une ordonnance incluant des antibiotiques à large spectre et un bronchodilatateur pour en patient présentent l'infection respiratoire aiguë avec symptômes de dyspneurs ou expectorations pyurulontes ? Lente.]
+Transcription en 3.015s (wer=28.57%)
+../data/audio/41.wav -> ../data/transcriptions_base-finetuned/41.txt
+Je vous recommande de prescrire une hybiteur de l'enzyme-deconversion du langage otensine, associée à un diuretique thiazidiques pour optimiser la gestion hypertoncive ce patient.]
+Transcription en 1.213s (wer=46.15%)
+../data/audio/46.wav -> ../data/transcriptions_base-finetuned/46.txt
+Pourrez-vous prescrire une ordonnance comprenant des antidiabétiques oraux et un régime hypoglycémique pour notre patient, attendre diabète de type 2.]
+Transcription en 1.092s (wer=14.29%)
+../data/audio/49.wav -> ../data/transcriptions_base-finetuned/49.txt
+Pourriez-vous rédiger une ordonnance incluant méformine et inhibiteur de DPP4 pour ce patient atteint deux diabètes, le type 2 avec asylinaux résistants prononcés ? ...]
+Transcription en 1.321s (wer=36.36%)
+../data/audio/50.wav -> ../data/transcriptions_base-finetuned/50.txt
+Pourriez-vous prescrire une ordonnance pour un patient attendre de diabète du type 2, incluant des hypoglycémiants en haut et d'évacomendation diatétique spécifique Pour optimiser la glycémie ?]
+Transcription en 1.228s (wer=30.77%)
+../data/audio/52.wav -> ../data/transcriptions_base-finetuned/52.txt
+Pour notre patient présentant une otite aiguë, je recommandeune prescription de ciprolyxacine associée à delà d'exanétasone pour atténuer la inflammation et radiquer l't infection.]
+Transcription en 1.373s (wer=45.83%)
+../data/audio/56.wav -> ../data/transcriptions_base-finetuned/56.txt
+Pourriez-vous prescrire une inhalation de corticoïde associée à un bronchodilatateur a action prolongé, pour améliorer la fonction respiratoire et l'otropasion asthmatique ?]
+Transcription en 1.361s (wer=27.27%)
+../data/audio/58.wav -> ../data/transcriptions_base-finetuned/58.txt
+Je prescris un traitement de base incluant encore tico-stéroïde inhalé et ingotilatateur à action rapide pour stabiliser la fonction respiratoire or, et prévenir les exacerbations asthmatiques.]
+Transcription en 4.006s (wer=19.23%)
+../data/audio/67.wav -> ../data/transcriptions_base-finetuned/67.txt
+Le rapport radiologique révèle une discontinuité osseuse significative au niveau du tibia, suggérant qu'une fracture complexe avec déplacement notatime en temps.]
+Transcription en 12.756s (wer=21.05%)
+../data/audio/69.wav -> ../data/transcriptions_base-finetuned/69.txt
+Le rapport radiologique révèle une fracture transverseante complète du tibia avec déplacement et hématome périosté associée. Le rapport biologie révélé un fracture transversal complexe d'utilbien, arrêt de déplasement e-mâton periocétés associeux ?]
+Transcription en 2.457s (wer=106.25%)
+../data/audio/72.wav -> ../data/transcriptions_base-finetuned/72.txt
+Le rapport radiologique révèle une opacipée alvéomo-interstitiaque diffuse compatie de la récupération tomale.]
+Transcription en 0.876s (wer=58.33%)
+../data/audio/74.wav -> ../data/transcriptions_base-finetuned/74.txt
+Le rapport radiologique révèle une opacité alvéolaire lobair, suggérant plombonie inflammatoire avec infiltrant antasticielle diffuse. Le rapport biologique revient à l'opensite et inviolaire lobère-sugurante le munier flamatoires]
+Transcription en 3.304s (wer=112.50%)
+../data/audio/75.wav -> ../data/transcriptions_base-finetuned/75.txt
+Le rapport radiologique révèle des opacités aléolaires diffuse, évoquant une pneumonie dilatérale avec dessines et de consolidation d'infiltration interstitie.]
+Transcription en 3.519s (wer=35.00%)
+../data/audio/81.wav -> ../data/transcriptions_base-finetuned/81.txt
+Le rapport radiologique révèle une fracture diaphysaire transverse de la clavicule gauche, sans déplacement significatif ni fragmentation en 16.]
+Transcription en 0.808s (wer=11.11%)
+../data/audio/87.wav -> ../data/transcriptions_base-finetuned/87.txt
+Le rapport radiologique révèle une scoliose légère avec un courbler thoracique discrète et d'une insymétrie mineure des espaces interderteux gros.]
+Transcription en 1.178s (wer=31.58%)
+../data/audio/89.wav -> ../data/transcriptions_base-finetuned/89.txt
+Le rapport radiologique révèle une scoliose légère avec un courbure thoracique modéré et le déviation lombaire compensatoire, sans anomalies structurelles associés. Sans animaliste structuraliser aussi égène à la pariétage de bioparie du nez en]
+Transcription en 7.271s (wer=80.95%)
+../data/audio/95.wav -> ../data/transcriptions_base-finetuned/95.txt
+Le rapport radiologique révèle une luxation bléno-humérale antérieure sans fracture associée, tandis que le scanner thoracique ne montre qu'une anomalie significative.]
+Transcription en 16.091s (wer=9.52%)
+../data/audio/97.wav -> ../data/transcriptions_base-finetuned/97.txt
+Le scanner a diminué un révèle une lithiase rénale bilatéral avec dilatation pyrocalicielle modéré, sans signes de pierre une effrite édue.]
+Transcription en 2.703s (wer=64.71%)
+Temps transcriptions en moyen sur 46 transcription(s) = 2.961s
+	---> ** WER global = 33.40% **
+Terminé en 00:02:16

@@ -268,7 +268,9 @@ Whisper utilise un **extracteur de caractéristiques** qui effectue deux tâches
 
 Cette transformation est essentielle pour que Whisper puisse interpréter correctement les entrées audio. Le **spectrogramme log-Mel** est la forme d’entrée attendue par le modèle Whisper, permettant une compréhension plus fine des variations de fréquence, comme illustré dans la **Figure 2** ci-dessous.
 
-![Spectrogramme](images/spectrogram.jpg)
+<div style="text-align: center;">
+  <img src="images/spectrogram.jpg" alt="Spectogram" />
+</div>
 
 **Figure 2** : Représentation d'un spectrogramme log-Mel. À gauche, un signal audio échantillonné ; à droite, le spectrogramme correspondant. Les canaux Mel représentent les fréquences perçues par l'oreille humaine. Source : [Google SpecAugment Blog.](https://ai.googleblog.com/2019/04/specaugment-new-data-augmentation.html)
 
@@ -678,7 +680,9 @@ print(f"Fichier {tokenizer_file} copié dans {output_dir}")
 
 Les graphiques générés par TensorBoard montrent les performances du modèle au cours de l'entraînement :
 
-|![Training](images/Progressions.png)
+<div style="text-align: center;">
+  <img src="images/Progressions.png" alt="Progressions" />
+</div>
 
 
 1. **Perte (eval/loss)** : La perte diminue régulièrement, atteignant environ 0,28, signe de la convergence du modèle. Cette stabilisation après 600 étapes indique une bonne optimisation.
@@ -690,9 +694,11 @@ Les graphiques générés par TensorBoard montrent les performances du modèle a
 L'ensemble des graphiques démontre une progression positive avec une bonne stabilité du modèle après plusieurs itérations.
 
 ### Calcul du WER sur les données audio test:
-Le **WER** calculé avant et après l'entraînement, sur des audios tests qui n'ont pas été '*entendus*' par les deux modèles, passe de **64,01%** à **34,64%.**
+Le **WER** calculé avant et après l'entraînement, sur des audios tests qui n'ont pas été '*entendus*' par les deux modèles, passe de **62,05%** à **33,40%.**
 
-![Résultats](images/Resultat.png)
+<div style="text-align: center;">
+  <img src="images/Resultat.png" alt="Résultats" />
+</div>
 
 
 ## 9. Conclusion

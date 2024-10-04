@@ -1,0 +1,144 @@
+**************** Model : base ****************
+Les transcriptions seront écrites dans ../data/transcriptions_base.
+Chargement du model base [/home/lorcyr/.cache/huggingface/hub/models--Systran--faster-whisper-base/snapshots/ebe41f70d5b6dfa9166e2c581c45c9c0cfc57b66] Ok en 0.276s
+../data/audio/103.wav -> ../data/transcriptions_base/103.txt
+[ De ce qu'un essai rébral révèle unipod en cité corticale temporeau parietta le
+-->Déjà sauvegardé (wer=100.00%)
+../data/audio/109.wav -> ../data/transcriptions_base/109.txt
+[ Le scanner peut le bien révéler une morphologie anatomique normal sans anomalie et vocatrice
+-->Déjà sauvegardé (wer=71.43%)
+../data/audio/11.wav -> ../data/transcriptions_base/11.txt
+[ La procédure de réparation des herniens guignales s'évéront les sans-onpombra, avec une dissection inicieuse d lanoinguin ginal et un sutur anatomique impeccable.
+-->Déjà sauvegardé (wer=56.52%)
+../data/audio/111.wav -> ../data/transcriptions_base/111.txt
+[ Le scanner abdominal révèle une appendice étégue avec qui la tation de napon 10 est
+-->Déjà sauvegardé (wer=64.29%)
+../data/audio/118.wav -> ../data/transcriptions_base/118.txt
+[ Le scanner thoracique révèle, une embouille pulmonaire avec intrombeau segmentaires visibles
+-->Déjà sauvegardé (wer=56.25%)
+../data/audio/122.wav -> ../data/transcriptions_base/122.txt
+[ LIRM cérébrale révèle une anomalie de signalité 2 hyperattence à au niveau la substance branche périventiculaire, suggérant impossible et d'inilisation.
+-->Déjà sauvegardé (wer=52.38%)
+../data/audio/136.wav -> ../data/transcriptions_base/136.txt
+[ Le rapport révèle une locociturie significative, suggestive du C-Denair et d'Inges avec présence de bâtes terruri E-matchurimicroscopique
+-->Déjà sauvegardé (wer=52.94%)
+../data/audio/15.wav -> ../data/transcriptions_base/15.txt
+[ La plastie de la Hermia guinale s'est déroulée sans complication postopératoire, avec
+-->Déjà sauvegardé (wer=60.00%)
+../data/audio/157.wav -> ../data/transcriptions_base/157.txt
+[ L'artroplastie totale de la hanche cédéroulée sans complication, avec une réduction tarfecte et ou stédélité articulaire optimal. La lurtroplastique total délait enchaîné dix rouler son complications , Avec un adéquction
+-->Déjà sauvegardé (wer=111.11%)
+../data/audio/163.wav -> ../data/transcriptions_base/163.txt
+[ La réparation du ligament croisé en tailleur a été réalisée avec schixxè, utilisant
+-->Déjà sauvegardé (wer=57.14%)
+../data/audio/167.wav -> ../data/transcriptions_base/167.txt
+[ La fusion vertébrale a été réalisée avec succès, sa co-pication postopératoire notable permettant une stabilisation optimante de la colonne vertebraine.
+-->Déjà sauvegardé (wer=30.00%)
+../data/audio/17.wav -> ../data/transcriptions_base/17.txt
+[ La mastique tournue du latire àvec et des roues essence assidants peropératoires,
+-->Déjà sauvegardé (wer=86.36%)
+../data/audio/173.wav -> ../data/transcriptions_base/173.txt
+[ La réduction de la fracture des lumiérus a été réalisée avec succès et continué à cofticale. A être étudiée, est stabilité articulaire ou confirmées par examen clinique ?
+-->Déjà sauvegardé (wer=46.43%)
+../data/audio/182.wav -> ../data/transcriptions_base/182.txt
+[ Suite à la craniotomie, l'excision de là-tumole liale a révélé une afflication paranchimateuse étendue nécessitant una visexion médiculeuses pour éviter les Lésions vasculaires adjacentes.
+Transcription en 1.423s (wer=32.00%)
+../data/audio/187.wav -> ../data/transcriptions_base/187.txt
+[ L'intervention sur la colonne vertébrale pour une éanidiscala nécessité 1 La minectomie et un disquectorie, avec una décompression radiculaire réussit à être installée dupas de stabilités postopératoires satisfaisantes. The
+Transcription en 21.975s (wer=73.08%)
+../data/audio/19.wav -> ../data/transcriptions_base/19.txt
+[ La mastectomy di laquérale, c'est déroulé sans incident péroberatoire. Avec une émostase parfaite et Une préservation optimalle des structures anatonniques à jaçante avec un hôpital dix de structure en atonique adjacente A lancant du châneur
+Transcription en 3.710s (wer=120.00%)
+../data/audio/196.wav -> ../data/transcriptions_base/196.txt
+[ La réflexion corticale frontale a permis des attidations efficaces d'éfoils épilétogènes, améliorant significativement le contrôle bécrit sur la patient.
+Transcription en 1.022s (wer=52.38%)
+../data/audio/199.wav -> ../data/transcriptions_base/199.txt
+[ la résection corticale temporale a permis une désactivation significative des foyers épilectogènes avec un améliorations notables d'écuze postoperatoires.
+Transcription en 1.054s (wer=36.84%)
+../data/audio/201.wav -> ../data/transcriptions_base/201.txt
+[ La déconquestion microvasculaire a révélé une névragitrie géninale, associée à un congression par avais-sosanga aberrant ? Necessitan et manipulation d'élicates pour préserver l''intécrités des fibres nerveuses.
+Transcription en 2.900s (wer=44.44%)
+../data/audio/202.wav -> ../data/transcriptions_base/202.txt
+[ La déconquestion microsculaire a terminé l'idération efficace d une haute régiminelle, avec un réduction significatif des symptômes névragiques postobératoires.
+Transcription en 1.090s (wer=68.42%)
+../data/audio/204.wav -> ../data/transcriptions_base/204.txt
+[ Une décompression micro-vasculaire a été réalisée avec succès, soulagant la compression aura les amélioreaux à vascularisation locale sans complication postopératoire notable.
+Transcription en 1.086s (wer=38.10%)
+../data/audio/223.wav -> ../data/transcriptions_base/223.txt
+[ La correction de la théécralogie De Follow a été réalisée avec succès, accueillant une vétération de la commune questions interventантriculaire et une reconstruction pour l'artère pulninaire, à présenter du club ou ta question inquiétante avec un focant ans
+Transcription en 22.774s (wer=84.00%)
+../data/audio/224.wav -> ../data/transcriptions_base/224.txt
+[ La réparation de la coninication incarvent criculaire, et l'ablation della persistance du canal arteriel ont été réalisés avec succès sans compliquations immodynamiques notables.
+Transcription en 1.185s (wer=43.48%)
+../data/audio/225.wav -> ../data/transcriptions_base/225.txt
+[ La chirurgie avait vélée, une anomalie de la Valle d'Ortique nécessitant una réparation médiculeuse pour corriger lasténaise et éviter un suffisance microl postopératoire. Lâcheur-gir a révélé il y aura normalement des ordres orthiques necessitaient
+Transcription en 2.551s (wer=91.67%)
+../data/audio/226.wav -> ../data/transcriptions_base/226.txt
+[ L'implantation des stimulateurs cardiaques, cédéroles et sans complication. Avec il manestésis générales guiintoléré Et une émostase parfaite au niveau du site de fonctions soucladiculaires
+Transcription en 5.614s (wer=56.00%)
+../data/audio/23.wav -> ../data/transcriptions_base/23.txt
+[ L'hystérecte miète de minelle, c est déroulée sans complication avec une émostase parfaite et
+Transcription en 3.122s (wer=82.35%)
+../data/audio/26.wav -> ../data/transcriptions_base/26.txt
+[ La Césarienne s'est déroulée, sans complication avec une incision fannistime et l's extraction facile du fétus suivi dsune émostase parfaite ou de suture en plan anatomique.
+Transcription en 2.686s (wer=34.62%)
+../data/audio/37.wav -> ../data/transcriptions_base/37.txt
+[ « Chers confrères, je vous serai reconnaissant de dire vouloir prescrire un antidiotérapie adaptée à ce patient présentant une affection respiratoire régue avec l'attention particulière au conneumopathy bactérienne. »
+Transcription en 1.501s (wer=46.43%)
+../data/audio/39.wav -> ../data/transcriptions_base/39.txt
+[ Pourriez-vous presquer une ordonnance incluant des antibiotiques à l'argent spectre, et un bon codilettateur pour la passion présentante en infection respiratoire récueille avec symptômes de dyspnea épectoration puerouillonte.
+Transcription en 2.040s (wer=46.43%)
+../data/audio/41.wav -> ../data/transcriptions_base/41.txt
+[ Je vous recommande presque à une illiterre de losines des conversions dans le jeu tensine associés un durétic qui est asidique pour optimiser la gestion hypertensive du sepacien. Bye.
+Transcription en 5.797s (wer=73.08%)
+../data/audio/46.wav -> ../data/transcriptions_base/46.txt
+[ Pouvez-vous presque créer une ordonnance qu'au prenant des Antigabétiques, Oro et à régime hypoglycémique pour notre patient ? A pain de diabète , De type 2
+Transcription en 1.516s (wer=42.86%)
+../data/audio/49.wav -> ../data/transcriptions_base/49.txt
+[ Pour y vous rédiger une ordonnance incluant mes formines et inhibitares, de DPP-4 pour se patient atteint deux diabètes. De type 2 avec assudie no résistance prononcée
+Transcription en 1.698s (wer=54.55%)
+../data/audio/50.wav -> ../data/transcriptions_base/50.txt
+[ Pourriez-vous qu'est ce qui est une ordonnance pour un patient attendre des diabètes de petites deux, attuant désir oublier ces niens au roue et dévoquandation diététique spécifique à optimiser la glycénie ?
+Transcription en 1.436s (wer=84.62%)
+../data/audio/52.wav -> ../data/transcriptions_base/52.txt
+[ Pour notre patient présentant une autité gue, je recommande d'une prescription de ciprolexacine associée à Delet-DexanitaZone pour atténuer la formation et radiquer l´affection.
+Transcription en 2.774s (wer=45.83%)
+../data/audio/56.wav -> ../data/transcriptions_base/56.txt
+[ Pour y évoprez-crire une inhalation de corticoid, associé à un branca dilatateur A attien prolongée. pour améliorer la fonction respiratoire De notre passé arsnatique A actions prolongées
+Transcription en 5.087s (wer=63.64%)
+../data/audio/58.wav -> ../data/transcriptions_base/58.txt
+[ Je presquuis un traitement de base inclué en corticosteroidinallée, et imprend qu'au dilatateur à action rapide pour stabiliser la fonction respiratoire est prévenir les exercissements asthématiques.
+Transcription en 1.619s (wer=42.31%)
+../data/audio/67.wav -> ../data/transcriptions_base/67.txt
+[ Le rapport radiologique fait bien une discontinuité aux seuses significatives au niveau d'utilia,
+Transcription en 3.209s (wer=73.68%)
+../data/audio/69.wav -> ../data/transcriptions_base/69.txt
+[ Le rapport radiologique révélène fracture transversant complète d'utibia, avec déplacement
+Transcription en 0.626s (wer=56.25%)
+../data/audio/72.wav -> ../data/transcriptions_base/72.txt
+[ Le rapport radiologique révére nous passifait à le veau noir au testiciède d'y-fus,
+Transcription en 0.693s (wer=83.33%)
+../data/audio/74.wav -> ../data/transcriptions_base/74.txt
+[ L'au rapport radiologique révèle nos passités à lvéolaires ou bères, sugeront le monnaie affianatoire et des cafés fantasticiède diffus.
+Transcription en 3.495s (wer=93.75%)
+../data/audio/75.wav -> ../data/transcriptions_base/75.txt
+[ Une rapportadologique est évalue des opacités à l'éolère diffuse.
+Transcription en 16.867s (wer=90.00%)
+../data/audio/81.wav -> ../data/transcriptions_base/81.txt
+[ Le rapport radiologique fait valine fracture d'y affisère transverse de la clavicule gauche, sans déclassement significatif ni fragmentation au seiseur.
+Transcription en 2.069s (wer=38.89%)
+../data/audio/87.wav -> ../data/transcriptions_base/87.txt
+[ Le rapport radiologique révèle une scolioze légère avec un courbours tout-acique discrète et d'une assimétrie minore des espaces interdertébraux.
+Transcription en 8.779s (wer=42.11%)
+../data/audio/89.wav -> ../data/transcriptions_base/89.txt
+[ Le rapport radiologique est révélu scouillose et gère avec une courbure thoracique modérée
+Transcription en 2.662s (wer=66.67%)
+../data/audio/95.wav -> ../data/transcriptions_base/95.txt
+[ Le rapport radiologique est révèle une olexation biennaux au néralentérieur sans fracture
+Transcription en 2.930s (wer=76.19%)
+../data/audio/97.wav -> ../data/transcriptions_base/97.txt
+[ L'escanée a démine un réveil et nolitiasre nulle bilateurale avec des latations clélocalissielles
+Transcription en 2.650s (wer=100.00%)
+Temps transcriptions en moyen sur 33 transcription(s) = 4.231s
+	---> ** WER global = 62.05% **
+Terminé en 00:02:19
