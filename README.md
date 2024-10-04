@@ -1,7 +1,15 @@
-# Fine-tuning Whisper pour la Reconnaissance Automatique de la Parole Médicale en Français
+![CH Périgueux](images/logo-perigueux.png)
 
-## *Cyrille LORIN (CH de Périgueux)*
-Octobre 2024
+<div style="text-align:center">
+<h1>Fine-tuning Whisper pour la Reconnaissance Automatique de la Parole Médicale en Français</h1>
+</div>
+
+<div style="text-align:center">
+  <h3><strong>Cyrille LORIN</strong> (<em>CH de Périgueux</em>) &amp; <strong>Mathias DESGRANGES</strong> (<em>CH Sarlat</em>)</h3>
+</div>
+
+
+<div style="text-align:center">Octobre 2024</div>
 
 ## Résumé
 
@@ -93,7 +101,7 @@ Voici la liste des modules Python à installer pour préparer l'environnement :
 10. **`torch`** : pour gérer les tenseurs et entraîner le modèle Whisper.
 11. **`ctranslate2`** : pour convertir le modèle en format compatible avec `faster-whisper`.
 
-Cela devrait couvrir tous les modules nécessaires pour exécuter les exemples et le code fournis dans le fichier README.
+Cela devrait couvrir tous les modules nécessaires pour exécuter les exemples et le code fournis.
 ```sh
 pip install --upgrade pip
 pip install --upgrade datasets[audio] transformers accelerate evaluate jiwer tensorboard soundfile pandas scikit-learn torch ctranslate2
@@ -116,7 +124,7 @@ Les textes générés par **Mistral** ont ensuite été convertis en audio grâc
 
 Les données sont organisées de la manière suivante pour être utilisées dans le processus de fine-tuning :
 
-```
+``` sh
 data/
 |  ├── audio/
 |  ├── rapports/
@@ -183,7 +191,7 @@ Nous nous retrouvons donc avec des fichiers csv de la forme :
 nom_du_fichier_audio.wav, '*transcription*'
 
 
-``` csv
+``` sh
 audio,sentence
 data/audio/151.wav,"Le rapport biologique révèle une thyroïdite de Hashimoto caractérisée par une infiltration lymphocytaire et une fibrose diffuse, confirmant une pathologie auto-immune."
 ```
@@ -198,20 +206,20 @@ Une fois l'environnement et les données prêts, le fine-tuning peut être réal
 ```python
 from datasets import load_dataset, DatasetDict
 
-# Load the local CSV files for train and test sets
+# Charger les fichiers CSV locaux pour les ensembles d'entraînement et de test
 data_files = {
-    "train": "data/train.csv",  # Local path to train.csv
-    "test": "data/test.csv"     # Local path to test.csv
+    "train": "data/train.csv", 
+    "test": "data/test.csv"
 }
 
-# Load the dataset from the local CSV files
+# Charger le jeu de données à partir des fichiers CSV locaux
 dataset = DatasetDict()
 dataset["train"] = load_dataset("csv", data_files={"train": data_files["train"]}, split="train")
 dataset["test"] = load_dataset("csv", data_files={"test": data_files["test"]}, split="test")
 
 print(dataset)
 ```
-```
+``` sh
 DatasetDict({
     train: Dataset({
         features: ['audio', 'sentence'],
@@ -333,9 +341,9 @@ Imprimons le premier exemple de l'ensemble de données *medic* pour voir sous qu
 ```python
 print(dataset["train"][0])
 ```
-
+``` sh
     {'audio': 'data/audio/156.wav', 'sentence': "L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide."}
-
+```
 
 Nous pouvons voir que nous avons un tableau audio d'entrée à une dimension et la transcription cible correspondante. Nous avons beaucoup parlé de l'importance du taux d'échantillonnage et du fait que nous devons faire correspondre le taux d'échantillonnage de notre audio à celui du modèle Whisper (16kHz). Si notre audio d'entrée était échantillonné à 48kHz ou autre chose que 16Khz, nous devrions le re-échantillonner à 16kHz avant de le passer à l'extracteur de caractéristiques de Whisper.
 
@@ -356,10 +364,10 @@ Le rechargement du premier échantillon audio dans l'ensemble de données *Medic
 ```python
 print(dataset["train"][0])
 ```
-
-    {'audio': {'path': 'data/audio/156.wav', 'array': array([0.00082397, 0.00024414, 0.        , ..., 0.00033569, 0.00024414,
-           0.00024414]), 'sampling_rate': 16000}, 'sentence': "L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide."}
-
+``` sh
+{'audio': {'path': 'data/audio/156.wav', 'array': array([0.00082397, 0.00024414, 0.        , ..., 0.00033569, 0.00024414,
+        0.00024414]), 'sampling_rate': 16000}, 'sentence': "L'arthroplastie céphalique a été réalisée avec succès, sans complications peropératoires. La prothèse a été parfaitement intégrée, garantissant une mobilité articulaire optimale et une récupération fonctionnelle rapide."}
+```
 
 Les valeurs du tableau peuvent être différentes.
 
@@ -373,13 +381,13 @@ Nous pouvons maintenant écrire une fonction pour préparer nos données pour le
 
 ```python
 def prepare_dataset(batch):
-    # load and resample audio data from 48 to 16kHz
+    # Charger et rééchantillonner les données audio de 48 à 16 kHz
     audio = batch["audio"]
 
-    # compute log-Mel input features from input audio array
+    # Calculer les caractéristiques d'entrée log-Mel à partir du tableau audio d'entrée
     batch["input_features"] = feature_extractor(audio["array"], sampling_rate=audio["sampling_rate"]).input_features[0]
 
-    # encode target text to label ids
+    # Encoder le texte cible en identifiants d'étiquettes
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
 ```
@@ -392,7 +400,7 @@ Nous pouvons appliquer la fonction de préparation des données à tous nos exem
 ```python
 dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=4)
 ```
-```
+``` sh
 Map (num_proc=4): 100%|██████████| 180/180 [00:06<00:00, 29.36 examples/s]
 Map (num_proc=4): 100%|██████████| 46/46 [00:01<00:00, 26.53 examples/s]
 ```
@@ -583,10 +591,6 @@ trainer = Seq2SeqTrainer(
     tokenizer=processor.feature_extractor,
 )
 ```
-```
-    max_steps is given, it will override any value given in num_train_epochs
-```
-
 Et voilà, nous sommes prêts à commencer l'entraînement !
 
 ## Formation (Training)
@@ -598,7 +602,7 @@ Pour lancer une formation, il suffit d'exécuter :
 torch.utils.checkpoint.use_reentrant = False
 trainer.train()
 ```
-```
+``` sh
     {'train_runtime': 20297.6998, 'train_samples_per_second': 0.552, 'train_steps_per_second': 0.034, 'train_loss': 0.181169177887163, 'epoch': 58.33}
     TrainOutput(global_step=700, training_loss=0.181169177887163, metrics={'train_runtime': 20297.6998, 'train_samples_per_second': 0.552, 'train_steps_per_second': 0.034, 'total_flos': 6.8128939966464e+17, 'train_loss': 0.181169177887163, 'epoch': 58.333333333333336})
 ```
@@ -614,7 +618,7 @@ finetuned_directory = "./whisper-base-ch-perigueux"
 model.save_pretrained(finetuned_directory)
 processor.save_pretrained(finetuned_directory)
 ```
-```
+``` sh
     Some non-default generation parameters are set in the model config. These should go into a GenerationConfig file (https://huggingface.co/docs/transformers/generation_strategies#save-a-custom-decoding-strategy-with-your-model) instead. This warning will be raised to an exception in v4.41.
     Non-default generation parameters: {'max_length': 448, 'suppress_tokens': [1, 2, 7, 8, 9, 10, 14, 25, 26, 27, 28, 29, 31, 58, 59, 60, 61, 62, 63, 90, 91, 92, 93, 359, 503, 522, 542, 873, 893, 902, 918, 922, 931, 1350, 1853, 1982, 2460, 2627, 3246, 3253, 3268, 3536, 3846, 3961, 4183, 4667, 6585, 6647, 7273, 9061, 9383, 10428, 10929, 11938, 12033, 12331, 12562, 13793, 14157, 14635, 15265, 15618, 16553, 16604, 18362, 18956, 20075, 21675, 22520, 26130, 26161, 26435, 28279, 29464, 31650, 32302, 32470, 36865, 42863, 47425, 49870, 50254, 50258, 50358, 50359, 50360, 50361, 50362], 'begin_suppress_tokens': [220, 50257]}
 ```
@@ -637,7 +641,7 @@ print(" Ok")
 ```
 <div style="page-break-after: always;"></div>
 
-```
+``` sh
     save  ./whisper-base-ch-perigueux/tokenizer.json Ok
 ```
 ```python
@@ -663,7 +667,7 @@ print(f"Le modèle a été converti et sauvegardé dans {output_dir}")
 shutil.copy(tokenizer_file, output_dir)
 print(f"Fichier {tokenizer_file} copié dans {output_dir}")
 ```
-```
+``` sh
     Le modèle a été converti et sauvegardé dans ./whisper-base-ch-perigueux-faster-whisper
     Fichier ./whisper-base-ch-perigueux/tokenizer.json copié dans ./whisper-base-ch-perigueux-faster-whisper
 ```
