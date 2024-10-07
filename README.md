@@ -240,13 +240,28 @@ Par la suite, nous pouvons spécifier un chemin personnalisé pour **model_name*
 
 
 ```python
+# Importation de la bibliothèque PyTorch, utilisée pour les opérations sur les tenseurs et la gestion des modèles d'apprentissage profond.
 import torch
+
+# Importation des modules WhisperForConditionalGeneration et WhisperTokenizer depuis la bibliothèque transformers.
+# WhisperForConditionalGeneration est utilisé pour définir le modèle Whisper de génération conditionnelle.
+# WhisperTokenizer est utilisé pour convertir du texte en tokens et inversement (encodage/décodage).
 from transformers import WhisperForConditionalGeneration, WhisperTokenizer
 
+# Nom du modèle pré-entraîné que l'on souhaite utiliser. 
 model_name = "openai/whisper-base"
+
+# Chargement du modèle pré-entraîné Whisper pour la génération conditionnelle.
+# Le modèle est chargé avec les poids et les paramètres associés à l'architecture Whisper pour la transcription et la génération.
+# WhisperForConditionalGeneration permet de gérer les tâches de séquence-à-séquence comme la transcription de l'audio en texte.
 model = WhisperForConditionalGeneration.from_pretrained(model_name)
+
+# Chargement du tokenizer pré-entraîné correspondant au modèle Whisper.
+# Le tokenizer est utilisé pour transformer le texte en tokens (encodage) avant qu'il ne soit traité par le modèle,
+# et inversement pour transformer les tokens en texte (décodage) après la génération du modèle.
 tokenizer = WhisperTokenizer.from_pretrained(model_name)
 ```
+<div style="page-break-after: always;"></div>
 
 ## Préparer l'extracteur de caractéristiques (Extractor), le tokenizer et les datas
 
@@ -267,8 +282,6 @@ Whisper utilise un **extracteur de caractéristiques** qui effectue deux tâches
 
 2. **Transformation en spectrogramme log-Mel** : L’audio est ensuite converti en **spectrogramme log-Mel**, une représentation visuelle des fréquences audio dans le temps. Le long de l'axe des ordonnées se trouvent les **canaux Mel**, qui représentent des plages de fréquences spécifiques, tandis que l'axe des abscisses représente le temps. Chaque pixel du spectrogramme reflète l’intensité logarithmique de chaque bin de fréquence à un moment donné. Cette représentation est standard dans le traitement de la parole, car elle se rapproche de la perception auditive humaine.
 
-<div style="page-break-after: always;"></div>
-
 Cette transformation est essentielle pour que Whisper puisse interpréter correctement les entrées audio. Le **spectrogramme log-Mel** est la forme d’entrée attendue par le modèle Whisper, permettant une compréhension plus fine des variations de fréquence, comme illustré dans la **Figure 2** ci-dessous.
 
 <div style="text-align: center;">
@@ -283,9 +296,18 @@ Chargeons l'extracteur de caractéristiques à partir du point de contrôle pré
 
 
 ```python
+# Importation du module WhisperFeatureExtractor depuis la bibliothèque transformers
+# Ce module est utilisé pour extraire des caractéristiques audio d'un fichier audio brut
+# avant de les passer au modèle Whisper pour la transcription.
 from transformers import WhisperFeatureExtractor
 
+# Initialisation de l'extracteur de caractéristiques en chargeant un modèle pré-entraîné.
+# 'from_pretrained' permet de charger les paramètres pré-entraînés pour l'extraction de caractéristiques
+# à partir du modèle spécifié par 'model_name' (qui peut être un modèle Whisper ou un autre modèle similaire).
+# L'extracteur de caractéristiques convertit l'audio en un format que le modèle peut comprendre,
+# tel que des spectrogrammes ou d'autres représentations acoustiques.
 feature_extractor = WhisperFeatureExtractor.from_pretrained(model_name)
+
 ```
 
 ## Load WhisperTokenizer
@@ -293,19 +315,33 @@ Voyons maintenant comment charger un tokenizer Whisper. Le modèle Whisper produ
 
 Traditionnellement, lors de l'utilisation de modèles à encodeur seul pour l'ASR, nous décodons en utilisant la classification temporelle connexionniste ([CTC](https://distill.pub/2017/ctc/)). Dans ce cas, nous devons former un tokenizer CTC pour chaque ensemble de données que nous utilisons. L'un des avantages de l'utilisation d'une architecture codeur-décodeur est que nous pouvons directement exploiter le tokenizer du modèle pré-entraîné.
 
-Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour le français, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification.
 
 <div style="page-break-after: always;"></div>
+
+Le tokenizer Whisper est pré-entraîné sur les transcriptions des 96 langues de pré-entraînement. Par conséquent, il dispose d'une [paire d'octets](https://huggingface.co/course/chapter6/5?fw=pt#bytepair-encoding-tokenization) étendue qui convient à presque toutes les applications ASR multilingues. Pour le français, nous pouvons charger le tokenizer et l'utiliser pour un réglage fin sans aucune autre modification.
 
 Il suffit de spécifier la langue cible et la tâche. Ces arguments indiquent au tokenizer de préfixer les tokens de la langue et de la tâche au début des séquences d'étiquettes encodées :
 
 ```python
+# Importation du module WhisperTokenizer depuis la bibliothèque transformers.
+# Ce module est utilisé pour convertir des textes en tokens (encodage) avant qu'ils ne soient traités par le modèle,
+# et pour convertir les tokens générés en texte (décodage) après la génération du modèle.
 from transformers import WhisperTokenizer
 
+# Initialisation du tokenizer pré-entraîné correspondant au modèle Whisper.
+# 'from_pretrained' permet de charger un tokenizer associé au modèle spécifié par 'model_name'.
+# On précise ici la langue et la tâche pour configurer le tokenizer selon les besoins spécifiques.
+# 'language="French"' spécifie que le tokenizer est ajusté pour traiter la langue française.
+# 'task="transcribe"' indique que la tâche assignée au modèle est la transcription de l'audio en texte.
 tokenizer = WhisperTokenizer.from_pretrained(model_name, language="French", task="transcribe")
 ```
 
-Nous pouvons vérifier que le tokenizer encode correctement les caractères en français en encodant et en décodant un échantillon de l'ensemble de données. Lors de l'encodage des transcriptions, le tokenizer ajoute des « jetons spéciaux » au début et à la fin de la séquence, tels que les jetons de début/fin de transcription, de langue et de tâche. Lors du décodage, il est possible de « sauter » ces jetons pour retourner une chaîne similaire à celle de l'entrée originale.
+Nous pouvons vérifier que le tokenizer encode correctement les caractères en français en encodant et en décodant un échantillon de l'ensemble de données. Lors de l'encodage des transcriptions, le tokenizer ajoute des « jetons spéciaux » au début et à la fin de la séquence, tels que les jetons de début/fin de transcription, de langue et de tâche.
+
+
+<div style="page-break-after: always;"></div>
+
+Lors du décodage, il est possible de « sauter » ces jetons pour retourner une chaîne similaire à celle de l'entrée originale.
 
 
 ```python
@@ -358,6 +394,9 @@ print(dataset["train"][0])
 
 Nous pouvons voir que nous avons un tableau audio d'entrée à une dimension et la transcription cible correspondante. Nous avons beaucoup parlé de l'importance du taux d'échantillonnage et du fait que nous devons faire correspondre le taux d'échantillonnage de notre audio à celui du modèle Whisper (16kHz). Si notre audio d'entrée était échantillonné à 48kHz ou autre chose que 16Khz, nous devrions le re-échantillonner à 16kHz avant de le passer à l'extracteur de caractéristiques de Whisper.
 
+
+<div style="page-break-after: always;"></div>
+
 Nous allons régler les entrées audio sur la fréquence d'échantillonnage correcte à l'aide de la méthode cast_column du jeu de données. Cette opération ne modifie pas l'audio sur place, mais signale aux datasets de rééchantillonner les échantillons audio à la volée la première fois qu'ils sont chargés :
 
 
@@ -371,8 +410,6 @@ from datasets import Audio
 dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
 
 ```
-
-<div style="page-break-after: always;"></div>
 
 Le rechargement du premier échantillon audio dans l'ensemble de données *Medic* le rééchantillonnera à la fréquence d'échantillonnage souhaitée :
 
@@ -392,6 +429,9 @@ Nous pouvons maintenant écrire une fonction pour préparer nos données pour le
 
 1.   Nous chargeons et rééchantillonnons les données audio en appelant batch[« audio »]. Comme expliqué ci-dessus, *Datasets* effectue toutes les opérations de rééchantillonnage nécessaires à la volée.
 2.   Nous utilisons l'extracteur de caractéristiques pour calculer les caractéristiques d'entrée du spectrogramme log-Mel à partir de notre tableau audio unidimensionnel.
+
+<div style="page-break-after: always;"></div>
+
 3.   Nous codons les transcriptions en identifiants d'étiquettes à l'aide du tokenizer.
 
 
@@ -407,8 +447,6 @@ def prepare_dataset(batch):
     batch["labels"] = tokenizer(batch["sentence"]).input_ids
     return batch
 ```
-
-<div style="page-break-after: always;"></div>
 
 Nous pouvons appliquer la fonction de préparation des données à tous nos exemples d'apprentissage en utilisant la méthode .map du jeu de données :
 
@@ -443,15 +481,18 @@ Maintenant que nous avons préparé nos données, nous sommes prêts à nous plo
 
 Une fois le modèle affiné, nous l'évaluerons sur les données de test afin de vérifier que nous l'avons correctement entraîné à transcrire des termes médicaux.
 
-<div style="page-break-after: always;"></div>
 
 ## Charger un point de contrôle pré-entraîné (Pre-Trained Checkpoint)
 Nous commencerons notre cycle de réglage fin à partir du point de contrôle pré-entraîné de Whisper small. Pour ce faire, nous chargerons les poids pré-entraînés du Hugging Face Hub. Encore une fois, cette opération est triviale grâce à l'utilisation de **Transformers** !
 
 
 ```python
+# Importation du module WhisperForConditionalGeneration depuis la bibliothèque transformers.
+# Ce module est utilisé pour les modèles Whisper de génération conditionnelle, adaptés aux tâches séquence-à-séquence,
 from transformers import WhisperForConditionalGeneration
 
+# Chargement du modèle pré-entraîné Whisper pour la génération conditionnelle.
+# 'from_pretrained' permet de charger les poids et la configuration du modèle spécifié par 'model_name' (ex: 'openai/whisper-base').
 model = WhisperForConditionalGeneration.from_pretrained(model_name)
 ```
 
@@ -470,9 +511,9 @@ Les *input_features* ont déjà été ramenés à 30 secondes et converties en u
 
 En revanche, les *labels* ne sont pas tamponnés (*un-padded*). Nous commençons par ajouter un *pad* aux séquences jusqu'à la longueur maximale du lot à l'aide de la méthode .pad du tokenizer. Les jetons de remplissage (*padding tokkens*) sont ensuite remplacés par -100 afin que ces jetons ne soient pas pris en compte lors du calcul de la perte. Nous coupons ensuite le début du jeton de transcription du début de la séquence d'étiquettes, car nous l'ajouterons plus tard au cours de la formation.
 
-<div style="page-break-after: always;"></div>
-
 Nous pouvons nous appuyer sur le **WhisperProcessor** que nous avons défini précédemment pour effectuer les opérations d'extraction de caractéristiques et de symbolisation :
+
+<div style="page-break-after: always;"></div>
 
 ```python
 import torch
@@ -510,15 +551,22 @@ class DataCollatorSpeechSeq2SeqWithPadding:
         batch["labels"] = labels
         return batch
 ```
-
+<div style="page-break-after: always;"></div>
 Initialisons le collecteur de données que nous venons de définir :
 
 
 ```python
+# Création du 'DataCollator' pour les tâches de type séquence-à-séquence (Seq2Seq) avec du padding dynamique. Le DataCollator est responsable de la préparation des lots de données pendant l'entraînement, en particulier pour s'assurer que toutes les séquences dans un lot ont la même longueur (grâce au padding).
+# C'est important car les modèles comme Whisper nécessitent des séquences d'entrée de longueur uniforme.
+
 data_collator = DataCollatorSpeechSeq2SeqWithPadding(
+    # On passe le processor qui s'occupe de la gestion des données audio et textuelles incluant la tokenisation et les transformations nécessaires pour les modèles.
     processor=processor,
+
+    # On définit le token de démarrage pour le décodeur, utilisé au début de la génération de la transcription. Ce token est spécifique à la configuration du modèle et est récupéré ici depuis 'model.config'.
     decoder_start_token_id=model.config.decoder_start_token_id,
 )
+
 ```
 
 ## Evaluations
@@ -535,7 +583,7 @@ import evaluate
 # 'wer' est la métrique standard pour mesurer les erreurs dans une transcription par rapport à la vérité terrain (texte de référence).
 metric = evaluate.load("wer")
 ```
-
+<div style="page-break-after: always;"></div>
 Il suffit ensuite de définir une fonction qui prend les prédictions de notre modèle et renvoie la métrique WER. Cette fonction, appelée compute_metrics, remplace d'abord -100 par pad_token_id dans les labels_ids (annulant l'étape que nous avons appliquée dans le data collator pour ignorer correctement les tokens padded dans la perte). Il décode ensuite les identifiants prédits et d'étiquettes en chaînes de caractères. Enfin, il calcule le WER entre les prédictions et les étiquettes de référence :
 
 
@@ -555,8 +603,6 @@ def compute_metrics(pred):
 
     return {"wer": wer}
 ```
-
-<div style="page-break-after: always;"></div>
 
 ## Définir les arguments de formation (Training Arguments)
 
@@ -689,6 +735,7 @@ trainer = Seq2SeqTrainer(
     tokenizer=processor.feature_extractor,
 )
 ```
+<div style="page-break-after: always;"></div>
 Nous sommes prêts maintenant à commencer l'entraînement.
 
 ## Formation (Training)
