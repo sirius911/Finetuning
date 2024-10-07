@@ -11,6 +11,9 @@
 
 <div style="text-align:center">Octobre 2024</div>
 
+Ces dernières années, la reconnaissance vocale a pris de l'importance dans le monde hospitalier en permettant l'automatisation des transcriptions de comptes rendus médicaux.
+
+
 ## Résumé
 
 Cet article explore le processus de fine-tuning du modèle **Whisper** pour la transcription de termes médicaux en français. Nous avons utilisé le modèle Whisper-base et généré nos propres données à l'aide des modèles **LLM Mistral** pour produire des textes médicaux et le **TTS Bark** pour les convertir en audio. Le but de cette étude est de montrer que ce procédé spécifique permet d'améliorer les performances d'un modèle existant. L'article détaille la préparation des données, l'architecture du modèle, et l'évaluation des performances avec la métrique **Word Error Rate** (WER).
@@ -34,9 +37,9 @@ Cet article explore le processus de fine-tuning du modèle **Whisper** pour la t
 
 ## 1. Introduction
 
-La reconnaissance automatique de la parole (ASR) est un domaine en pleine expansion, avec des applications variées notamment dans le secteur médical. Le modèle Whisper d’OpenAI se distingue par sa capacité à transcrire et à traduire automatiquement des enregistrements dans plusieurs langues, en se basant sur 680 000 heures de données audio.
-
 Le besoin de solutions adaptées aux données médicales en français a motivé l'adaptation de Whisper pour des scénarios spécifiques. Cette étude explore comment fine-tuner Whisper pour traiter des termes médicaux.
+
+La reconnaissance automatique de la parole (ASR) est un domaine en pleine expansion, avec des applications variées notamment dans le secteur médical. Le modèle Whisper d’OpenAI se distingue par sa capacité à transcrire et à traduire automatiquement des enregistrements dans plusieurs langues, en se basant sur 680 000 heures de données audio.
 
 ## 2. Fonctionnement de Whisper
 
@@ -326,13 +329,19 @@ print(f"Are equal:             {input_str == decoded_str}")
 
 ## Combiner pour créer un WhisperProcessor
 
-Pour simplifier l'utilisation de l'extracteur de caractéristiques et du tokenizer, nous pouvons les regrouper (*wrap*) dans une seule classe **WhisperProcessor**. Cet objet processeur **hérite** des classes **WhisperFeatureExtractor** et WhisperProcessor et peut être utilisé sur les entrées audio et les prédictions du modèle selon les besoins. Ce faisant, nous n'avons besoin de suivre que deux objets pendant l'apprentissage : le processeur et le modèle :
+Pour simplifier l'utilisation de l'extracteur de caractéristiques et du tokenizer, nous pouvons les regrouper (*wrap*) dans une seule classe **WhisperProcessor**. Cet objet processeur **hérite** des classes **WhisperFeatureExtractor** et **WhisperProcessor** et peut être utilisé sur les entrées audio et les prédictions du modèle selon les besoins. Ce faisant, nous n'avons besoin de suivre que deux objets pendant l'apprentissage : le processeur et le modèle :
 
 
 ```python
+# Importation du module WhisperProcessor depuis la bibliothèque transformers
 from transformers import WhisperProcessor
 
+# Chargement du processeur Whisper pré-entraîné en spécifiant le modèle, la langue et la tâche.
+# Ici, 'model_name' correspond au nom du modèle que vous souhaitez utiliser.
+# 'language="French"' indique que le modèle est configuré pour traiter des transcriptions en français.
+# 'task="transcribe"' précise que la tâche à accomplir est la transcription d'audio en texte.
 processor = WhisperProcessor.from_pretrained(model_name, language="French", task="transcribe")
+
 ```
 
 **Préparer les données**
@@ -353,9 +362,14 @@ Nous allons régler les entrées audio sur la fréquence d'échantillonnage corr
 
 
 ```python
+# Importation du module Audio depuis la bibliothèque datasets
 from datasets import Audio
 
+# Conversion de la colonne "audio" du dataset en un format audio compatible avec la bibliothèque datasets
+# Cela permet de manipuler les fichiers audio directement dans le dataset.
+# Le paramètre 'sampling_rate=16000' indique que la fréquence d'échantillonnage des fichiers audio doit être de 16 kHz.
 dataset = dataset.cast_column("audio", Audio(sampling_rate=16000))
+
 ```
 
 <div style="page-break-after: always;"></div>
@@ -400,14 +414,22 @@ Nous pouvons appliquer la fonction de préparation des données à tous nos exem
 
 
 ```python
+# Application de la fonction 'prepare_dataset' sur le dataset pour chaque exemple.
+# La fonction map permet d'appliquer une transformation à chaque élément du dataset.
+# 'remove_columns=dataset.column_names["train"]' indique qu'on souhaite supprimer les colonnes actuelles 
+# du dataset d'entraînement après application de la transformation.
+# Cela est utile pour ne garder que les nouvelles colonnes générées par 'prepare_dataset'.
+# 'num_proc=4' permet de paralléliser l'opération sur 4 processeurs pour accélérer le traitement du dataset.
+
 dataset = dataset.map(prepare_dataset, remove_columns=dataset.column_names["train"], num_proc=4)
+
 ```
 ``` sh
 Map (num_proc=4): 100%|██████████| 180/180 [00:06<00:00, 29.36 examples/s]
 Map (num_proc=4): 100%|██████████| 46/46 [00:01<00:00, 26.53 examples/s]
 ```
 
-Très bien ! Avec cela, nous avons nos données entièrement préparées pour l'entraînement ! Continuons et regardons comment nous pouvons utiliser ces données pour affiner Whisper.
+Avec cela, nous avons nos données entièrement préparées pour l'entraînement ! Regardons comment nous pouvons utiliser ces données pour affiner Whisper.
 
 > Note : Actuellement, les jeux de données utilisent à la fois torchaudio et librosa pour le chargement et le rééchantillonnage audio. Si vous souhaitez mettre en œuvre votre propre chargement/échantillonnage de données, vous pouvez utiliser la colonne « path » pour obtenir le chemin du fichier audio et ignorer la colonne « audio ».
 
@@ -506,8 +528,11 @@ Après l'entraînement, nous évaluons les performances du modèle avec le **Wor
 
 
 ```python
+# Importation du module evaluate, qui permet de charger et d'utiliser des métriques pour évaluer les performances du modèle
 import evaluate
 
+# Chargement de la métrique Word Error Rate (WER), utilisée pour évaluer la qualité de la transcription
+# 'wer' est la métrique standard pour mesurer les erreurs dans une transcription par rapport à la vérité terrain (texte de référence).
 metric = evaluate.load("wer")
 ```
 
@@ -548,30 +573,81 @@ Pour plus de détails sur les autres arguments d'entraînement, consultez la [do
 
 
 ```python
+# Importation du module Seq2SeqTrainingArguments depuis transformers
+# Ce module est utilisé pour définir les arguments et configurations pour l'entraînement d'un modèle de type séquence-à-séquence.
 from transformers import Seq2SeqTrainingArguments
 
+# Initialisation des arguments d'entraînement avec Seq2SeqTrainingArguments.
 training_args = Seq2SeqTrainingArguments(
+    # Dossier où seront sauvegardés les checkpoints et autres résultats de l'entraînement.
     output_dir="./whisper-base-french-medic",
+
+    # Taille du lot (batch size) par appareil (GPU ou CPU) pour l'entraînement.
     per_device_train_batch_size=16,
+
+    # Accumulation des gradients sur plusieurs étapes. Ici, les gradients sont accumulés sur une seule étape.
+    # Si on augmente cette valeur, cela permet d'entraîner avec des lots effectifs plus grands sans augmenter
+    # la consommation de mémoire, car les mises à jour des poids sont moins fréquentes.
     gradient_accumulation_steps=1,  # augmenter par 2x pour chaque réduction de 2x de la taille de lot (batch_size)
+
+    # Taux d'apprentissage utilisé par l'optimiseur pour ajuster les poids du modèle durant l'entraînement.
     learning_rate=1e-5,
+
+    # Nombre d'étapes de "warmup", c'est-à-dire le nombre d'itérations durant lesquelles le taux d'apprentissage augmente
+    # graduellement jusqu'à atteindre sa valeur maximale.
     warmup_steps=500,
-    max_steps=700, #5000
+
+    # Nombre maximum d'étapes d'entraînement. L'entraînement s'arrêtera après 700 étapes (ou 5000 si modifié).
+    max_steps=700,  #5000
+
+    # Activation du gradient checkpointing pour économiser la mémoire GPU en divisant les calculs de gradient.
+    # Cela est utile pour les modèles volumineux, mais peut ralentir légèrement l'entraînement.
     gradient_checkpointing=True,
+
+    # Activation de l'entraînement en virgule flottante 16 bits (FP16) pour réduire la consommation de mémoire
+    # et accélérer l'entraînement sur les GPU compatibles.
     fp16=True,
+
+    # Stratégie d'évaluation pendant l'entraînement. Ici, l'évaluation est faite tous les 'eval_steps' (tous les 25 steps).
     eval_strategy="steps",
+
+    # Taille du lot (batch size) par appareil pour l'évaluation.
     per_device_eval_batch_size=8,
+
+    # Activation de la génération de texte pendant l'évaluation (utilisé pour les modèles de transcription/génération).
     predict_with_generate=True,
+
+    # Longueur maximale des séquences générées pendant l'évaluation (225 tokens ici).
     generation_max_length=225,
+
+    # Sauvegarde du modèle tous les 1000 steps.
     save_steps=1000,
+
+    # Évaluation du modèle tous les 25 steps pour suivre la progression pendant l'entraînement.
     eval_steps=25,
+
+    # Journalisation des résultats tous les 25 steps.
     logging_steps=25,
+
+    # Envoi des résultats de journalisation à TensorBoard, un outil pour visualiser l'entraînement du modèle.
     report_to=["tensorboard"],
+
+    # Chargement du meilleur modèle à la fin de l'entraînement en fonction de la métrique spécifiée.
     load_best_model_at_end=True,
+
+    # Utilisation de la métrique WER (Word Error Rate) pour sélectionner le meilleur modèle.
     metric_for_best_model="wer",
+
+    # Indication que pour WER, une valeur plus faible est meilleure, donc 'greater_is_better' est défini sur False.
     greater_is_better=False,
+
+    # Indique qu'il ne faut pas pousser le modèle sur le Hub Hugging Face.
     push_to_hub=False,
+
+    # Nom de l'exécution (run) pour identifier cet entraînement dans TensorBoard.
     run_name="essais_base",
+
+    # Dossier où sont stockés les logs de TensorBoard pour cette exécution.
     logging_dir="./whisper-base-french-medic/logs/essais_base"
 )
 ```
@@ -581,19 +657,39 @@ training_args = Seq2SeqTrainingArguments(
 Nous pouvons transmettre les arguments d'entraînement au *Trainer* avec notre modèle, notre jeu de données, notre collecteur de données et notre fonction compute_metrics :
 
 ```python
+# Importation du module Seq2SeqTrainer depuis transformers.
+# Ce module permet de gérer l'entraînement d'un modèle de type séquence-à-séquence en facilitant de nombreuses tâches 
+# comme la gestion des données, l'optimisation, et l'évaluation.
 from transformers import Seq2SeqTrainer
 
+# Initialisation de l'entraîneur (Trainer) avec les différents arguments et composants nécessaires.
 trainer = Seq2SeqTrainer(
+    # Les arguments d'entraînement définis dans l'objet training_args (précédemment configuré).
     args=training_args,
+
+    # Le modèle à entraîner (ex: un modèle Whisper fine-tuné ou pré-entraîné).
     model=model,
+
+    # Le dataset utilisé pour l'entraînement. Ici, on passe la partie 'train' du dataset.
     train_dataset=dataset["train"],
+
+    # Le dataset utilisé pour l'évaluation. Ici, on passe la partie 'test' du dataset.
     eval_dataset=dataset["test"],
+
+    # Le 'data_collator' est un composant responsable de préparer les lots de données pendant l'entraînement.
+    # Il gère le padding et l'assemblage des différentes entrées pour être compatibles avec le modèle.
     data_collator=data_collator,
+
+    # La fonction utilisée pour calculer les métriques d'évaluation. Ici, on utilise 'compute_metrics' pour calculer
+    # la métrique du Word Error Rate (WER) ou d'autres métriques selon la configuration.
     compute_metrics=compute_metrics,
+
+    # Le tokenizer utilisé pour transformer les données d'entrée (texte ou audio) en un format compatible avec le modèle.
+    # Dans ce cas, 'processor.feature_extractor' est utilisé, car Whisper traite des données audio.
     tokenizer=processor.feature_extractor,
 )
 ```
-Et voilà, nous sommes prêts à commencer l'entraînement !
+Nous sommes prêts maintenant à commencer l'entraînement.
 
 ## Formation (Training)
 
@@ -601,7 +697,16 @@ Pour lancer une formation, il suffit d'exécuter :
 
 
 ```python
+# Désactivation de l'utilisation des checkpoints reentrants dans PyTorch.
+# PyTorch utilise parfois une stratégie de "reentrant" lors du gradient checkpointing, qui peut causer des comportements inattendus.
+# En définissant 'torch.utils.checkpoint.use_reentrant' à False, on force l'utilisation d'une méthode plus stable pour le gradient checkpointing.
+# Cela permet de réduire les erreurs lors de l'entraînement de grands modèles avec des techniques d'optimisation mémoire comme le gradient checkpointing.
 torch.utils.checkpoint.use_reentrant = False
+
+# Lancement de l'entraînement avec l'entraîneur (Trainer) configuré.
+# La méthode train() démarre l'entraînement du modèle avec les arguments, datasets et configurations passés au Trainer.
+# Le processus suit les étapes définies dans Seq2SeqTrainingArguments, comme le nombre de steps, les évaluations périodiques, 
+# et la journalisation dans TensorBoard.
 trainer.train()
 ```
 ``` sh
@@ -703,7 +808,9 @@ Le **WER** calculé avant et après l'entraînement, sur des audios tests qui n'
 
 ## 9. Conclusion
 
-Le fine-tuning de Whisper pour la transcription des termes médicaux en français démontre qu'il est possible d'améliorer les performances même avec un ensemble de données généré artificiellement. En utilisant des technologies comme Mistral et Bark, nous avons pu générer des données vocales médicales et fine-tuner le modèle de manière efficace. Le WER a été réduit de manière significative avec 180 petits rapports médicaux, rendant cette approche prometteuse.
+Le fine-tuning de Whisper pour la transcription des termes médicaux en français démontre qu'il est nécessaire d'entraîner le modèle avec des termes spécifiques au domaine médical afin d'améliorer sa précision. En utilisant des technologies comme **Mistral** et **Bark**, nous avons pu générer des données vocales médicales et *fine-tuner* le modèle de manière efficace. Le **WER** a été réduit de manière significative avec juste 180 petits rapports médicaux, rendant cette approche prometteuse.
+
+Pour aller encore plus loin, notamment pour les prescriptions médicales, nous pourrions envisager d'y intégrer un dictionnaire de médicaments, comme le *Vidal*.
 
 ## 10. Références
 
